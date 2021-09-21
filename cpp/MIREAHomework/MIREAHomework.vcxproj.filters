@@ -32,5 +32,8 @@
     <ClInclude Include="homewokrs\homework_3.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="homewokrs\homework_4.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

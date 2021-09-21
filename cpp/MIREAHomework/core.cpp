@@ -49,6 +49,7 @@ std::string Task::NumberToString(float number)
 void Task::Run() {
 	PrintTaskGreetings();
 	RunLogic();
+	std::cout << std::endl;
 }
 bool Task::CheckDivisionByZero(float quotient) {
 	if (quotient == 0.0f) {

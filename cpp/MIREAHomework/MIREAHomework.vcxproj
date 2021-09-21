@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="core.h" />
     <ClInclude Include="homewokrs\homework_3.hpp" />
+    <ClInclude Include="homewokrs\homework_4.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
