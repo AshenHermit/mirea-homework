@@ -40,6 +40,10 @@ void Task::EnterBool(std::string question, bool& varRef) {
 	std::cin >> answer;
 	varRef = answer == "y";
 }
+void Task::EnterString(std::string statement, std::string& varRef) {
+	Print("%s : ", statement.c_str());
+	std::cin >> varRef;
+}
 std::string Task::NumberToString(float number)
 {
 	std::string sNum = std::to_string(number);

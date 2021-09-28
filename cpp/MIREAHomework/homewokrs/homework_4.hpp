@@ -180,31 +180,186 @@ class Task5 : public Task {
 public:
 	Task5() : Task("Sin grapgh", "sin graph") {}
 	void RunLogic() override {
-		float scaleX = 1.0f;
-		float scaleY = 16.0f;
+		float scaleX = 0.2f;
+		float scaleY = 10.0f;
 
 		int height = ceilf(scaleY * 2.0f);
 		int width = 100;
 
-		int remainingStars = numberOfStars;
-
 		std::vector<float> sinValues;
 		for (int x = 0; x < width; ++x) {
-			sinValues.push_back(sinf(x*scaleX));
+			sinValues.push_back(-sinf(x*scaleX) * ((float)height/2.0f-1.0f));
 		}
 
 		std::string canvas = "";
 		for (int y = 0; y < height; ++y) {
 			canvas += "    ";
 			for (int x = 0; x < width; ++x) {
-				//TODO: here. continue...
-				if (roundf(sinValues[x]) canvas += "-";
-				else canvas += "-";
+				float centeredY = (float)y - (float)height / 2.0f;
+				float roundValue = roundf(sinValues[x]);
+				if (roundValue == roundf(centeredY)) {
+					canvas += "#";
+					continue;
+				}
+				if (
+					(sinValues[x] >= 0.0f && centeredY < roundValue && centeredY>=0.0f) ||
+					(sinValues[x] <=  0.0f && centeredY > roundValue && centeredY<=0.0f)) canvas += ":";
+				else canvas += " ";
 			}
 			canvas += "\n";
 		}
 
 		Prints("\n\n" + canvas);
+	}
+};
+
+/// <summary>
+/// Roman nums
+/// </summary>
+class Task6 : public Task {
+public:
+	Task6() : Task("Roman nums", "conversion") {}
+	int RomanCharValue(char c)
+	{
+		switch (std::toupper(c)){
+			case 'I':  return 1;   case 'V':  return 5;
+			case 'X':  return 10;  case 'L':  return 50;
+			case 'C':  return 100; case 'D':  return 500; 
+			case 'M':  return 1000;
+			default: return 0;
+		}
+	}
+	int RomanToInt(const std::string& strNumber)
+	{
+		int result = 0, prev = 0;
+		for (auto pc = strNumber.rbegin(); pc != strNumber.rend(); ++pc)
+		{
+			int value = RomanCharValue(*pc);
+			result += value < prev ? -value : value;
+			prev = value;
+		}
+		return result;
+	}
+	void RunLogic() override {
+		std::string romanNumber = "";
+		EnterString("enter roman number", romanNumber);
+		int convertedValue = RomanToInt(romanNumber);
+		Prints(romanNumber + " = %i", convertedValue);
+	}
+};
+
+/// <summary>
+/// pseudorandom number generator
+/// </summary>
+class Task7 : public Task {
+public:
+	Task7() : Task("Pseudorandom number generator", "random numbers") {}
+	int PRand(int m = 0, int i = 0, int c = 0) {
+		int prev = 0;
+		for (int iter = 1; iter < i; ++iter) {
+			prev = (m * prev + iter) % c;
+		}
+		return prev;
+	}
+	void RunLogic() override {
+		Prints("variant I  = %i\n", PRand(37, 3, 64));
+		Prints("variant II = %i\n", PRand(25173, 13849, 65537));
+	}
+};
+
+/// <summary>
+/// matrices multiplication
+/// </summary>
+class Task8 : public Task {
+public:
+	Task8() : Task("Matrices multiplication", "and some another calculations") {}
+	class Matrix {
+	public:
+		int sizeX;
+		int sizeY;
+		float** data;
+		Matrix(int _sizeX, int _sizeY, float** _data) {
+			sizeX = _sizeX;
+			sizeY = _sizeY;
+			data = _data;
+		}
+		Matrix(int _sizeX, int _sizeY) {
+			sizeX = _sizeX;
+			sizeY = _sizeY;
+			data = MakeMatrixData(sizeX, sizeY, 0.0f);
+		}
+		Matrix(int _sizeX, int _sizeY, std::initializer_list<float> list) {
+			sizeX = _sizeX;
+			sizeY = _sizeY;
+			data = MakeMatrixData(sizeX, sizeY, 0.0f);
+			int i = 0;
+			for (std::initializer_list<float>::iterator iter = list.begin(); iter != list.end(); ++iter) {
+				Set(i % sizeX, i / sizeX, *iter);
+				i += 1;
+			}
+		}
+		static float** MakeMatrixData(int sizeX, int sizeY, float fillValue) {
+			float** data = new float* [sizeY];
+			for (int y = 0; y < sizeY; ++y) {
+				data[y] = new float[sizeX];
+				for (int x = 0; x < sizeX; ++x) {
+					data[y][x] = fillValue;
+				}
+			}
+			return data;
+		}
+		~Matrix() {
+			
+		}
+
+		float Get(int x, int y) const {
+			return data[y][x];
+		}
+		int GetSizeX() const { return sizeX; }
+		int GetSizeY() const { return sizeY; }
+		void Set(int x, int y, float value) {
+			data[y][x] = value;
+		}
+
+		Matrix operator*(const Matrix& B) {
+			Matrix result = Matrix(sizeY, B.GetSizeX());
+			for (int y = 0; y < result.GetSizeY(); ++y) {
+				for (int x = 0; x < result.GetSizeX(); ++x) {
+					result.Set(x, y, 0.0f);
+					for (int k = 0; k < result.GetSizeX(); k++)
+					{
+						result.Set(x, y, result.Get(x, y) + Get(x, k) * B.Get(k, y));
+					}
+				}
+			}
+		}
+		std::string ToString() {
+			std::string str;
+			int fieldLength = 10;
+			for (int y = 0; y < GetSizeY(); ++y) {
+				str += "(";
+				for (int x = 0; x < GetSizeX(); ++x) {
+					std::string field = std::to_string(Get(x, y));
+					while (field.size() < fieldLength) field += " ";
+					str += field;
+					if (x < GetSizeX() - 1) str += " ";
+				}
+				str += ")\n";
+			}
+			return str;
+		}
+		
+	};
+	void RunLogic() override {
+		Matrix sellers = Matrix(4, 3, { 5,2,0,10,
+									3,5,2,5,
+									20,0,0,0, });
+
+		Matrix prices = Matrix(2, 4, { 1.20f, 0.50f,
+							2.80f, 0.40f,
+							5.00f, 1.00f,
+							2.00f, 1.50f, });
+		Prints("\n" + prices.ToString());
 	}
 };
 
@@ -218,6 +373,9 @@ public:
 		taskRunner.AddTask(new Task3());
 		taskRunner.AddTask(new Task4());
 		taskRunner.AddTask(new Task5());
+		taskRunner.AddTask(new Task6());
+		taskRunner.AddTask(new Task7());
+		taskRunner.AddTask(new Task8());
 
 		return taskRunner;
 	};

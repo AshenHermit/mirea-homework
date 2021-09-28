@@ -30,6 +30,7 @@ public:
 	static void Prints(std::string _Format, ...);
 	static void EnterFloat(std::string variableName, float& varRef);
 	static void EnterBool(std::string question, bool& varRef);
+	static void EnterString(std::string statement, std::string& varRef);
 	static std::string NumberToString(float number);
 	static bool CheckDivisionByZero(float quotient);
 	static bool CheckNumberGreatherThanZero(std::string variableName, float quotient);
