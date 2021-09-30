@@ -4,76 +4,67 @@
 
 
 /// <summary>
-/// Loan
+/// Max common divider
 /// </summary>
 class Task1 : public Task {
 public:
-	Task1() : Task("Loan", "Monthly payment m on a loan of S rubles for n years at percent p") {}
+	Task1() : Task("Max common divider", "") {}
+	int FindMCDWithDivision(int a, int b) {
+		while (a != 0 && b != 0) {
+			if (a > b) {
+				a = a % b;
+			}
+			else {
+				b = b % a;
+			}
+		}
+		return a + b;
+	}
+	int FindMCDWithSubstraction(int a, int b) {
+		while (a != b) {
+			if (a > b) {
+				a = a - b;
+			}
+			else {
+				b = b - a;
+			}
+		}
+		return a;
+	}
 	void RunLogic() override {
-		float S, p, n;
-		EnterFloat("S", S);
-		if (CheckNumberGreatherThanZero("S", S)) return;
-		EnterFloat("p", p);
-		if (CheckNumberGreatherThanZero("p", p)) return;
-		EnterFloat("n", n);
-		if (CheckNumberGreatherThanZero("n", n)) return;
-
-		float r = p / 100.0f;
-		float m = (S * r * powf((1 + r), n)) / (12.0f * (powf(1.0f + r, n) - 1.0f));
-
-		Prints(std::string("m = \n")+NumberToString(m));
+		int a, b;
+		EnterInt("a", a);
+		EnterInt("b", b);
+		Print("MCD of %i and %i calculated with division: %i\n", a, b, FindMCDWithDivision(a, b));
+		Print("MCD of %i and %i calculated with substraction: %i\n", a, b, FindMCDWithSubstraction(a, b));
 	}
 };
 
 /// <summary>
-/// Second Loan
+/// Text file encryption
 /// </summary>
 class Task2 : public Task {
 public:
-	Task2() : Task("Second Loan", "At what percentage p a loan of S rubles was issued, which is repaid by monthly payments of size m over n years.") {}
-	float CountM(float S, float p, float n) {
-		float r = p / 100.0f;
-		float m = (S * r * powf((1 + r), n)) / (12.0f * (powf(1.0f + r, n) - 1.0f));
-		return m;
-	}
-	// S = 1000000
-	// m = 10294.2f
-	// n = 19
-	// 
-	// S = 120
-	// m = 10
-	// n = 1
-	void RunLogic() override {
-		float S, m, n;
-		EnterFloat("S", S);
-		if (CheckNumberGreatherThanZero("S", S)) return;
-		EnterFloat("m", m);
-		if (CheckNumberGreatherThanZero("m", m)) return;
-		EnterFloat("n", n);
-		if (CheckNumberGreatherThanZero("n", n)) return;
+	Task2() : Task("Text file encryption", "") {}
+	// 32. variant
+	std::string EncryptWithReplacement(std::string text) {
+		for (size_t i = 0; i < text.size(); i++)
+		{
 
-		float offset = 0.0f;
-		float width = 400.0f;
-		float resultM = 0.0f;
-		float p = 0.0f;
-
-		while (fabsf(resultM - m) > 0.01f && width>0.0f) {
-			p = offset + width/2.0f;
-			resultM = CountM(S, p, n);
-
-			Print("offset = %f  width = %f | ", offset, width);
-			std::string message = std::string("p = %f  m = ") + NumberToString(resultM);
-			Prints(message + "\n", p);
-
-			if (m < resultM) {
-				width /= 2.0f;
-			}
-			else {
-				offset += width / 2.0f;
-				width /= 2.0f;
-			}
 		}
-		Prints("p = %f\n", p);
+	}
+	// 31. variant
+	std::string EncryptWithShift(std::string text, int amount) {
+		char max_value = std::numeric_limits<char>::max();
+		for (size_t i = 0; i < text.size(); i++)
+		{
+			if(text[i] >= 'A' && text[i] <= 'z')
+			text[i] = (text[i]+amount) % max_value;
+		}
+	}
+	void RunLogic() override {
+		int limit;
+		EnterInt("simple numbers limit", limit);
 	}
 };
 

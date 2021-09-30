@@ -34,6 +34,10 @@ void Task::EnterFloat(std::string variableName, float& varRef) {
 	Print("%s = ", variableName.c_str());
 	std::cin >> varRef;
 }
+void Task::EnterInt(std::string variableName, int& varRef) {
+	Print("%s = ", variableName.c_str());
+	std::cin >> varRef;
+}
 void Task::EnterBool(std::string question, bool& varRef) {
 	Print("%s (y/n) your answer:", question.c_str());
 	std::string answer;
@@ -109,6 +113,7 @@ void TaskRunner::RunAllTasks() {
 	for (int i = 0; i < tasks.size(); ++i)
 	{
 		tasks[i]->Run();
+		system("PAUSE");
 	}
 }
 void TaskRunner::AddTask(Task* taskPtr) {
@@ -118,6 +123,16 @@ int TaskRunner::GetTasksCount() {
 	return tasks.size();
 }
 
+std::string TaskRunner::MakeTasksTable()
+{
+	std::string table = "";
+	int i = 1;
+	for (std::vector<TaskPtr>::iterator task = tasks.begin(); task != tasks.end(); ++task) {
+		table += "    " + std::to_string(i) + ". " + (*task)->name + "\n";
+		i += 1;
+	}
+	return table;
+}
 
 // utilities
 std::string GenerateNumbersList(int start, int count) {
@@ -133,7 +148,21 @@ std::string GenerateNumbersList(int start, int count) {
 	return numbersList.str();
 }
 
+std::string GenerateNumbersList(const std::vector<int>& list)
+{
+	std::ostringstream numbersList;
+	numbersList << "(";
+	for (int i = 0; i < list.size(); ++i)
+	{
+		numbersList << list[i];
+		if (i < list.size() - 1) numbersList << ", ";
+	}
+	numbersList << ")";
+	return numbersList.str();
+}
+
 void UserLaunchTaskRunner(TaskRunner& taskRunner) {
+	Task::Prints("\n"+taskRunner.MakeTasksTable() + "\n");
 	std::string list = GenerateNumbersList(1, taskRunner.GetTasksCount());
 	Task::Print((std::string("enter task number ") + list + " or \"all\": ").c_str());
 	std::string choice; std::cin >> choice;

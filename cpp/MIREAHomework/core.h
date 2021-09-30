@@ -29,6 +29,7 @@ public:
 	static void Print(char const* _Format, ...);
 	static void Prints(std::string _Format, ...);
 	static void EnterFloat(std::string variableName, float& varRef);
+	static void EnterInt(std::string variableName, int& varRef);
 	static void EnterBool(std::string question, bool& varRef);
 	static void EnterString(std::string statement, std::string& varRef);
 	static std::string NumberToString(float number);
@@ -41,6 +42,8 @@ public:
 
 
 class TaskRunner {
+public:
+	typedef std::shared_ptr<Task> TaskPtr;
 private:
 	std::vector<std::shared_ptr<Task>> tasks;
 
@@ -51,7 +54,9 @@ public:
 	void RunAllTasks();
 	void AddTask(Task* taskPtr);
 	int GetTasksCount();
+	std::string MakeTasksTable();
 };
 
 std::string GenerateNumbersList(int start, int count);
+std::string GenerateNumbersList(const std::vector<int> & list);
 void UserLaunchTaskRunner(TaskRunner& taskRunner);

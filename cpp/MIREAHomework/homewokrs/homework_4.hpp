@@ -5,7 +5,7 @@
 
 
 /// <summary>
-/// Loan
+/// File
 /// </summary>
 class Task1 : public Task {
 public:
@@ -106,6 +106,9 @@ public:
 		std::cin >> answer;
 		std::cout << std::endl;
 		char choice = answer[0];
+		/*switch (choice) {
+		case 'c':
+		}*/
 		if (choice == 'c') {
 			float R;
 			EnterFloat("radius R", R);
@@ -278,17 +281,17 @@ public:
 		int sizeX;
 		int sizeY;
 		float** data;
-		Matrix(int _sizeX, int _sizeY, float** _data) {
+		Matrix(int _sizeY, int _sizeX, float** _data) {
 			sizeX = _sizeX;
 			sizeY = _sizeY;
 			data = _data;
 		}
-		Matrix(int _sizeX, int _sizeY) {
+		Matrix(int _sizeY, int _sizeX) {
 			sizeX = _sizeX;
 			sizeY = _sizeY;
 			data = MakeMatrixData(sizeX, sizeY, 0.0f);
 		}
-		Matrix(int _sizeX, int _sizeY, std::initializer_list<float> list) {
+		Matrix(int _sizeY, int _sizeX, std::initializer_list<float> list) {
 			sizeX = _sizeX;
 			sizeY = _sizeY;
 			data = MakeMatrixData(sizeX, sizeY, 0.0f);
@@ -309,7 +312,10 @@ public:
 			return data;
 		}
 		~Matrix() {
-			
+			/*for (int y = 0; y < GetSizeY(); ++y) {
+				delete[] data[y];
+			}
+			delete[] data;*/
 		}
 
 		float Get(int x, int y) const {
@@ -322,16 +328,17 @@ public:
 		}
 
 		Matrix operator*(const Matrix& B) {
-			Matrix result = Matrix(sizeY, B.GetSizeX());
-			for (int y = 0; y < result.GetSizeY(); ++y) {
-				for (int x = 0; x < result.GetSizeX(); ++x) {
-					result.Set(x, y, 0.0f);
-					for (int k = 0; k < result.GetSizeX(); k++)
+			Matrix result = Matrix(GetSizeY(), B.GetSizeX());
+			for (int i = 0; i < GetSizeY(); ++i) {
+				for (int j = 0; j < GetSizeX(); ++j) {
+					result.Set(j, i, 0.0f);
+					for (int k = 0; k < B.GetSizeY(); k++)
 					{
-						result.Set(x, y, result.Get(x, y) + Get(x, k) * B.Get(k, y));
+						result.Set(j, i, result.Get(j, i) + (Get(k, i) * B.Get(j, k)));
 					}
 				}
 			}
+			return result;
 		}
 		std::string ToString() {
 			std::string str;
@@ -340,26 +347,98 @@ public:
 				str += "(";
 				for (int x = 0; x < GetSizeX(); ++x) {
 					std::string field = std::to_string(Get(x, y));
-					while (field.size() < fieldLength) field += " ";
+					if (x < GetSizeX() - 1) {
+						while (field.size() < fieldLength) field += " ";
+						field += " ";
+					};
 					str += field;
-					if (x < GetSizeX() - 1) str += " ";
 				}
 				str += ")\n";
 			}
 			return str;
 		}
-		
 	};
 	void RunLogic() override {
-		Matrix sellers = Matrix(4, 3, { 5,2,0,10,
-									3,5,2,5,
-									20,0,0,0, });
+		Matrix sellers = Matrix(3, 4, { 5,2,0,10,
+										3,5,2,5,
+										20,0,0,0, });
 
-		Matrix prices = Matrix(2, 4, { 1.20f, 0.50f,
-							2.80f, 0.40f,
-							5.00f, 1.00f,
-							2.00f, 1.50f, });
-		Prints("\n" + prices.ToString());
+		Matrix prices = Matrix(4, 2, {	1.20f, 0.50f,
+										2.80f, 0.40f,
+										5.00f, 1.00f,
+										2.00f, 1.50f, });
+
+		Matrix C = sellers * prices;
+		Prints("\n" + C.ToString());
+		Prints("\n");
+
+		int personMinMoney = 0;
+		int personMaxMoney = 0;
+		int personMinCommission = 0;
+		int personMaxCommission = 0;
+		float allCommissions = 0.0f;
+		float allPrimaryMoney = 0.0f;
+
+		for (int y = 0; y < C.GetSizeY(); ++y) {
+			if (C.Get(0, y)- C.Get(1, y) < C.Get(0, personMinMoney) - C.Get(1, personMinMoney)) personMinMoney = y;
+			if (C.Get(0, y)- C.Get(1, y) > C.Get(0, personMaxMoney) - C.Get(1, personMaxMoney)) personMaxMoney = y;
+
+			if (C.Get(1, y) < C.Get(1, personMinCommission)) personMinCommission = y;
+			if (C.Get(1, y) < C.Get(1, personMaxCommission)) personMaxCommission = y;
+
+			allCommissions += C.Get(1, y);
+			allPrimaryMoney += C.Get(0, y);
+		}
+
+		Print("seller %i got min money\n", personMinMoney+1);
+		Print("seller %i got max money\n", personMaxMoney+1);
+		Print("seller %i got min commissions\n", personMinCommission+1);
+		Print("seller %i got max commissions\n", personMaxCommission+1);
+		Print("all commisions: %f \n", allCommissions);
+		Print("all primary money: %f \n", allPrimaryMoney);
+	}
+};
+
+/// <summary>
+/// numeral system conversion
+/// </summary>
+class Task9 : public Task {
+public:
+	Task9() : Task("Numeral system conversion", "") {}
+	std::string	vocab = std::string("0123456789ABCDEF");
+
+	std::string Convert(std::string value, int fromBase, int toBase) {
+		std::string result;
+		int decimal = 0;
+		int i = value.size()-1;
+		for (std::string::iterator c = value.begin(); c != value.end(); ++c) {
+			int v = vocab.find(std::toupper(*c));
+			decimal += v * powf((float)fromBase, i);
+			i -= 1;
+		}
+		while (decimal > 0) {
+			result += vocab[decimal%toBase];
+			decimal = decimal / toBase;
+		}
+		std::string reversed = "";
+		for (i = result.length() - 1; i >= 0; i--)
+			reversed += result[i];
+		return reversed;
+	}
+	void RunLogic() override {
+		std::string value;
+		int fromBase;
+		int toBase;
+
+
+		EnterString("enter value", value);
+		EnterInt("enter value base", fromBase);
+		if(CheckNumberGreatherThanZero("old base", fromBase)) return;
+		EnterInt("enter base to convert value in", toBase);
+		if(CheckNumberGreatherThanZero("new base", toBase)) return;
+		std::string result = Convert(value, fromBase, toBase);
+
+		Prints(value+" (%i) = "+result+" (%i)", fromBase, toBase);
 	}
 };
 
@@ -376,6 +455,7 @@ public:
 		taskRunner.AddTask(new Task6());
 		taskRunner.AddTask(new Task7());
 		taskRunner.AddTask(new Task8());
+		taskRunner.AddTask(new Task9());
 
 		return taskRunner;
 	};
