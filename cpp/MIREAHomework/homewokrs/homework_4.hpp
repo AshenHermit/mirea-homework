@@ -100,34 +100,40 @@ public:
 	float GetTriangleArea(float h, float b) {
 		return h * b / 2.0f;
 	}
+
+	void RunCircleAreaCalcInterface() {
+		float R;
+		EnterFloat("radius R", R);
+		float area = GetCircleArea(R);
+		Print("area of circle with radius %f is %f", R, area);
+	}
+	void RunRectAreaCalcInterface() {
+		float a, b;
+		EnterFloat("side a", a);
+		EnterFloat("side b", b);
+		float area = GetRectArea(a, b);
+		Print("area of rect with side a = %f and b = %f is %f", a, b, area);
+	}
+	void RunTriangleAreaCalcInterface() {
+		float h, b;
+		EnterFloat("height h", h);
+		EnterFloat("base b", b);
+		float area = GetTriangleArea(h, b);
+		Print("area of triangle with height h = %f and base b = %f is %f", h, b, area);
+	}
+
 	void RunLogic() override {
 		Print("enter type of geometry shape: rectangle(r), circle(c), or triangle(t): ");
 		std::string answer;
 		std::cin >> answer;
 		std::cout << std::endl;
 		char choice = answer[0];
-		/*switch (choice) {
-		case 'c':
-		}*/
-		if (choice == 'c') {
-			float R;
-			EnterFloat("radius R", R);
-			float area = GetCircleArea(R);
-			Print("area of circle with radius %f is %f", R, area);
-		}
-		else if (choice == 'r') {
-			float a, b;
-			EnterFloat("side a", a);
-			EnterFloat("side b", b);
-			float area = GetRectArea(a, b);
-			Print("area of rect with side a = %f and b = %f is %f", a, b, area);
-		}
-		else if (choice == 't') {
-			float h, b;
-			EnterFloat("height h", h);
-			EnterFloat("base b", b);
-			float area = GetTriangleArea(h, b);
-			Print("area of triangle with height h = %f and base b = %f is %f", h, b, area);
+
+		switch (choice) {
+			case 'c': RunCircleAreaCalcInterface(); break;
+			case 'r': RunRectAreaCalcInterface(); break;
+			case 't': RunTriangleAreaCalcInterface(); break;
+			default: break;
 		}
 	}
 };
@@ -196,9 +202,13 @@ public:
 
 		std::string canvas = "";
 		for (int y = 0; y < height; ++y) {
-			canvas += "    ";
+			//canvas += "    ";
+			float centeredY = (float)y - (float)height / 2.0f;
+
+			canvas += std::to_string(-centeredY/height);
+			canvas += " ";
+
 			for (int x = 0; x < width; ++x) {
-				float centeredY = (float)y - (float)height / 2.0f;
 				float roundValue = roundf(sinValues[x]);
 				if (roundValue == roundf(centeredY)) {
 					canvas += "#";
@@ -234,12 +244,23 @@ public:
 	}
 	int RomanToInt(const std::string& strNumber)
 	{
-		int result = 0, prev = 0;
-		for (auto pc = strNumber.rbegin(); pc != strNumber.rend(); ++pc)
+		int result = 0;
+		for (int i = 0; i < strNumber.length(); i++)
 		{
-			int value = RomanCharValue(*pc);
-			result += value < prev ? -value : value;
-			prev = value;
+			int s1 = RomanCharValue(strNumber[i]);
+			if (i + 1 < strNumber.length())
+			{
+				int s2 = RomanCharValue(strNumber[i + 1]);
+				if (s1 >= s2){
+					result = result + s1;
+				}else{
+					result = result + s2 - s1;
+					i++;
+				}
+			}
+			else {
+				result = result + s1;
+			}
 		}
 		return result;
 	}
@@ -411,11 +432,13 @@ public:
 		std::string result;
 		int decimal = 0;
 		int i = value.size()-1;
+		//converting to a decimal
 		for (std::string::iterator c = value.begin(); c != value.end(); ++c) {
 			int v = vocab.find(std::toupper(*c));
 			decimal += v * powf((float)fromBase, i);
 			i -= 1;
 		}
+		//converting to final base
 		while (decimal > 0) {
 			result += vocab[decimal%toBase];
 			decimal = decimal / toBase;
@@ -429,7 +452,6 @@ public:
 		std::string value;
 		int fromBase;
 		int toBase;
-
 
 		EnterString("enter value", value);
 		EnterInt("enter value base", fromBase);

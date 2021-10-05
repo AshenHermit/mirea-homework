@@ -10,16 +10,16 @@ class Task1 : public Task {
 public:
 	Task1() : Task("Loan", "Monthly payment m on a loan of S rubles for n years at percent p") {}
 	void RunLogic() override {
-		float S, p, n;
-		EnterFloat("S", S);
+		double S, p, n;
+		EnterDouble("S", S);
 		if (CheckNumberGreatherThanZero("S", S)) return;
-		EnterFloat("p", p);
+		EnterDouble("p", p);
 		if (CheckNumberGreatherThanZero("p", p)) return;
-		EnterFloat("n", n);
+		EnterDouble("n", n);
 		if (CheckNumberGreatherThanZero("n", n)) return;
 
-		float r = p / 100.0f;
-		float m = (S * r * powf((1 + r), n)) / (12.0f * (powf(1.0f + r, n) - 1.0f));
+		double r = p / 100.0;
+		double m = (S * r * pow((1 + r), n)) / (12.0 * (pow(1.0 + r, n) - 1.0));
 
 		Prints(std::string("m = \n")+NumberToString(m));
 	}
@@ -31,49 +31,57 @@ public:
 class Task2 : public Task {
 public:
 	Task2() : Task("Second Loan", "At what percentage p a loan of S rubles was issued, which is repaid by monthly payments of size m over n years.") {}
-	float CountM(float S, float p, float n) {
-		float r = p / 100.0f;
-		float m = (S * r * powf((1 + r), n)) / (12.0f * (powf(1.0f + r, n) - 1.0f));
+	double CountM(double S, double p, double n) {
+		double r = p / 100.0;
+		double m = (S * r * pow((1.0 + r), n)) / (12.0 * (pow(1.0 + r, n) - 1.0));
 		return m;
 	}
-	// S = 1000000
-	// m = 10294.2f
-	// n = 19
-	// 
-	// S = 120
-	// m = 10
-	// n = 1
+	//tests
+	//S=1000000 m=10294.2 n=19 p=10.5
+	//S=1000000 m=13313.5 n=20 p=15
+	//S=12000 n=1010 n=1 p=1
+	//S=12000 n=1000 n=1 p=0.000006
 	void RunLogic() override {
-		float S, m, n;
-		EnterFloat("S", S);
+		double S, m, n;
+		EnterDouble("S", S);
 		if (CheckNumberGreatherThanZero("S", S)) return;
-		EnterFloat("m", m);
+		EnterDouble("m", m);
 		if (CheckNumberGreatherThanZero("m", m)) return;
-		EnterFloat("n", n);
+		EnterDouble("n", n);
 		if (CheckNumberGreatherThanZero("n", n)) return;
 
-		float offset = 0.0f;
-		float width = 400.0f;
-		float resultM = 0.0f;
-		float p = 0.0f;
+		//area
+		double offset = 0.0;
+		double width = 200.0;
+		//expression
+		double accuracy = 0.0001;
+		double p = 0.0;
+		double resultM = 0.0;
+		double resultP = 0.0;
 
-		while (fabsf(resultM - m) > 0.01f && width>0.0f) {
-			p = offset + width/2.0f;
+		while (abs(resultM - m) > accuracy && width>0.0) {
+			//p = center of area
+			p = offset + width/2.0;
 			resultM = CountM(S, p, n);
 
-			Print("offset = %f  width = %f | ", offset, width);
+			//stops if odd shit is happend
+			if (std::isinf(resultM) || std::isinf(resultM)) break;
+			resultP = p;
+
+			//tracing calculations
+			Prints("offset = %f  width = %f | ", offset, width);
 			std::string message = std::string("p = %f  m = ") + NumberToString(resultM);
 			Prints(message + "\n", p);
 
+			//moving area
 			if (m < resultM) {
-				width /= 2.0f;
-			}
-			else {
-				offset += width / 2.0f;
-				width /= 2.0f;
+				width /= 2.0;
+			}else {
+				offset += width / 2.0;
+				width /= 2.0;
 			}
 		}
-		Prints("p = %f\n", p);
+		Prints("p = %f\n", resultP);
 	}
 };
 

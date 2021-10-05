@@ -30,13 +30,44 @@ void Task::Prints(std::string _Format, ...)
 	std::vprintf((Task::padding + _Format).c_str(), ap);
 	va_end(ap);
 }
+bool Task::ProcessCInError()
+{
+	if (!std::cin.good()) {
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return true;
+	}
+	return false;
+}
 void Task::EnterFloat(std::string variableName, float& varRef) {
-	Print("%s = ", variableName.c_str());
-	std::cin >> varRef;
+	bool entered = false;
+	while (ProcessCInError() || !entered)
+	{
+		entered = true;
+		Print("%s = ", variableName.c_str());
+		std::cin >> varRef;
+	}
+}
+void Task::EnterDouble(std::string variableName, double& varRef)
+{
+	//TODO: dont reuse code
+	bool entered = false;
+	while (ProcessCInError() || !entered)
+	{
+		entered = true;
+		Print("%s = ", variableName.c_str());
+		std::cin >> varRef;
+	}
 }
 void Task::EnterInt(std::string variableName, int& varRef) {
-	Print("%s = ", variableName.c_str());
-	std::cin >> varRef;
+	//TODO: dont reuse code
+	bool entered = false;
+	while (ProcessCInError() || !entered)
+	{
+		entered = true;
+		Print("%s = ", variableName.c_str());
+		std::cin >> varRef;
+	}
 }
 void Task::EnterBool(std::string question, bool& varRef) {
 	Print("%s (y/n) your answer:", question.c_str());
@@ -48,11 +79,25 @@ void Task::EnterString(std::string statement, std::string& varRef) {
 	Print("%s : ", statement.c_str());
 	std::cin >> varRef;
 }
-std::string Task::NumberToString(float number)
+bool Task::IsNanOrInfinity(float number)
 {
 	std::string sNum = std::to_string(number);
-	if (sNum == "-nan(ind)" || sNum == "inf") return "---";
-	return sNum;
+	return (sNum == "-nan(ind)" || sNum == "inf");
+}
+bool Task::IsNanOrInfinity(double number)
+{
+	std::string sNum = std::to_string(number);
+	return (sNum == "-nan(ind)" || sNum == "inf");
+}
+std::string Task::NumberToString(float number)
+{
+	if (IsNanOrInfinity(number)) return "---";
+	return std::to_string(number);
+}
+std::string Task::NumberToString(double number)
+{
+	if (IsNanOrInfinity(number)) return "---";
+	return std::to_string(number);
 }
 void Task::Run() {
 	PrintTaskGreetings();
@@ -91,6 +136,10 @@ std::string Task::ReadTextFile(std::string filepath)
 
 	ifile.close();
 	return contentsStream.str();
+}
+std::string Task::FixedLengthString(std::string str, int length)
+{
+	return std::string();
 }
 void Task::RunLogic() {
 
