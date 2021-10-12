@@ -208,7 +208,7 @@ public:
 /// </summary>
 class Task5 : public Task {
 public:
-	Task5() : Task("Sin grapgh", "sin graph") {}
+	Task5() : Task("Sin graph", "sin graph") {}
 	std::string GetFixedLengthNumber(float number, int length=5) {
 		if (number == 0.0f) {
 			number = 0.0f;
@@ -239,17 +239,17 @@ public:
 
 			for (int x = 0; x < width; ++x) {
 				if (centeredY == 0.0f) {
-					line += "-";
+					line += " ";
 					continue;
 				}
 				float roundValue = roundf(sinValues[x]);
 				if (roundValue == roundf(centeredY)) {
-					line += "O";
+					line += "@";
 					continue;
 				}
 				if (
 					(sinValues[x] >= 0.0f && centeredY < roundValue && centeredY>=0.0f) ||
-					(sinValues[x] <=  0.0f && centeredY > roundValue && centeredY<=0.0f)) line += "/";
+					(sinValues[x] <=  0.0f && centeredY > roundValue && centeredY<=0.0f)) line += ".";
 				else line += " ";
 			}
 
@@ -260,6 +260,7 @@ public:
 					std::string mark = "pi";
 					if (p > 1) mark = std::to_string(p) + mark;
 					if (p == 0) mark = "0";
+					mark = " " + mark + " ";
 					std::string result = line.substr(0, (int)p * piMarkPeriod) + mark + line.substr(std::min((int)line.size(), (int)(p * piMarkPeriod + mark.size())));
 					line = result;
 				}
@@ -267,7 +268,7 @@ public:
 
 			line = line.substr(0, line.size()/2) + " " 
 				+ GetFixedLengthNumber(-centeredY / (float)(height - 1) * 2.0f, 5) + " " 
-				+ line.substr(line.size() / 2, 5);
+				+ line.substr(line.size() / 2);
 			canvas += line;
 			canvas += "\n";
 		}
@@ -282,6 +283,8 @@ public:
 class Task6 : public Task {
 public:
 	Task6() : Task("Roman nums", "conversion") {}
+	std::string romanDigits = "IVXLCDM";
+
 	int RomanCharValue(char c)
 	{
 		switch (std::toupper(c)){
@@ -300,9 +303,6 @@ public:
 			int s1 = RomanCharValue(strNumber[i]);
 			if (i + 1 < strNumber.length())
 			{
-				if (strNumber[i + 1]) {
-					
-				}
 				int s2 = RomanCharValue(strNumber[i + 1]);
 				if (s1 >= s2){
 					result = result + s1;
@@ -317,9 +317,32 @@ public:
 		}
 		return result;
 	}
+	bool CanConvert(std::string romanNumber) {
+		for (int i = 1; i < romanDigits.size(); ++i)
+		{
+			std::string badPatterns[3] = {
+				std::string("") + romanDigits[i - 1] + romanDigits[i - 1] + romanDigits[i], // IIV
+				std::string("") + romanDigits[i - 1] + romanDigits[i] + romanDigits[i - 1], // IVI
+				std::string("") + romanDigits[i] + romanDigits[i - 1] + romanDigits[i - 1] + romanDigits[i - 1] + romanDigits[i - 1], // VIIII
+			};
+
+			for (int p = 0; p < 3; p++)
+			{
+				if (romanNumber.find(badPatterns[p]) != std::string::npos) 
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
 	void RunLogic() override {
 		std::string romanNumber = "";
 		EnterString("enter roman number", romanNumber);
+		if (!CanConvert(romanNumber)) {
+			Print("cant convert");
+			return;
+		}
 		int convertedValue = RomanToInt(romanNumber);
 		Prints(romanNumber + " = %i", convertedValue);
 	}
