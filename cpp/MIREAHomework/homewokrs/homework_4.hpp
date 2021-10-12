@@ -188,37 +188,64 @@ public:
 class Task5 : public Task {
 public:
 	Task5() : Task("Sin grapgh", "sin graph") {}
+	std::string GetFixedLengthNumber(float number, int length=5) {
+		if (number == 0.0f) {
+			number = 0.0f;
+		}
+		std::string text = std::to_string(number);
+		if (text[0] != '-') text = " " + text;
+		text = text.substr(0, std::min((int)text.size(), length));
+		return text;
+	}
 	void RunLogic() override {
-		float scaleX = 0.2f;
+		float scaleX = 0.06f;
 		float scaleY = 10.0f;
 
-		int height = ceilf(scaleY * 2.0f);
+		int height = ceilf(scaleY * 2.0f)+1;
 		int width = 100;
 
 		std::vector<float> sinValues;
 		for (int x = 0; x < width; ++x) {
-			sinValues.push_back(-sinf(x*scaleX) * ((float)height/2.0f-1.0f));
+			sinValues.push_back(-sinf(x*PI*scaleX) * ((float)height/2.0f));
 		}
 
 		std::string canvas = "";
 		for (int y = 0; y < height; ++y) {
 			//canvas += "    ";
-			float centeredY = (float)y - (float)height / 2.0f;
+			float centeredY = (float)y - (float)(height-1) / 2.0f;
 
-			canvas += std::to_string(-centeredY/height);
-			canvas += " ";
+			std::string line = "";
 
 			for (int x = 0; x < width; ++x) {
+				if (centeredY == 0.0f) {
+					line += "-";
+					continue;
+				}
 				float roundValue = roundf(sinValues[x]);
 				if (roundValue == roundf(centeredY)) {
-					canvas += "#";
+					line += "O";
 					continue;
 				}
 				if (
 					(sinValues[x] >= 0.0f && centeredY < roundValue && centeredY>=0.0f) ||
-					(sinValues[x] <=  0.0f && centeredY > roundValue && centeredY<=0.0f)) canvas += ":";
-				else canvas += " ";
+					(sinValues[x] <=  0.0f && centeredY > roundValue && centeredY<=0.0f)) line += "/";
+				else line += " ";
 			}
+
+			if (centeredY == 0.0f) {
+				int piMarkCount = width * scaleX;
+				float piMarkPeriod = 1.0f/scaleX;
+				for (int p = 0; p < (int)floorf(piMarkCount); ++p) {
+					std::string mark = "pi";
+					if (p > 1) mark = std::to_string(p) + mark;
+					if (p == 0) mark = "0";
+					std::string result = line.substr(0, (int)p * piMarkPeriod) + mark + line.substr(std::min((int)line.size(), (int)(p * piMarkPeriod + mark.size())));
+					line = result;
+				}
+			}
+
+			line = GetFixedLengthNumber(-centeredY / (float)(height - 1) * 2.0f, 5) + " " + line;
+			canvas += line;
 			canvas += "\n";
 		}
 
@@ -302,6 +329,13 @@ public:
 		int sizeX;
 		int sizeY;
 		float** data;
+		Matrix(Matrix const& other) : Matrix(other.GetSizeY(), other.GetSizeX()){
+			for (int y = 0; y < GetSizeY(); ++y) {
+				for (int x = 0; x < GetSizeX(); ++x) {
+					Set(x,y, other.Get(x, y));
+				}
+			}
+		};
 		Matrix(int _sizeY, int _sizeX, float** _data) {
 			sizeX = _sizeX;
 			sizeY = _sizeY;
@@ -333,10 +367,10 @@ public:
 			return data;
 		}
 		~Matrix() {
-			/*for (int y = 0; y < GetSizeY(); ++y) {
+			for (int y = 0; y < GetSizeY(); ++y) {
 				delete[] data[y];
 			}
-			delete[] data;*/
+			delete[] data;
 		}
 
 		float Get(int x, int y) const {
@@ -350,8 +384,8 @@ public:
 
 		Matrix operator*(const Matrix& B) {
 			Matrix result = Matrix(GetSizeY(), B.GetSizeX());
-			for (int i = 0; i < GetSizeY(); ++i) {
-				for (int j = 0; j < GetSizeX(); ++j) {
+			for (int i = 0; i < result.GetSizeY(); ++i) {
+				for (int j = 0; j < result.GetSizeX(); ++j) {
 					result.Set(j, i, 0.0f);
 					for (int k = 0; k < B.GetSizeY(); k++)
 					{
@@ -405,7 +439,7 @@ public:
 			if (C.Get(0, y)- C.Get(1, y) > C.Get(0, personMaxMoney) - C.Get(1, personMaxMoney)) personMaxMoney = y;
 
 			if (C.Get(1, y) < C.Get(1, personMinCommission)) personMinCommission = y;
-			if (C.Get(1, y) < C.Get(1, personMaxCommission)) personMaxCommission = y;
+			if (C.Get(1, y) > C.Get(1, personMaxCommission)) personMaxCommission = y;
 
 			allCommissions += C.Get(1, y);
 			allPrimaryMoney += C.Get(0, y);

@@ -45,7 +45,7 @@ public:
 /// </summary>
 class Task2 : public Task {
 public:
-	Task2() : Task("Text file encryption", "") {}
+	Task2() : Task("Text file manipulations", "") {}
 	// 32. variant
 	std::string EncryptWithReplacement(std::string text) {
 		for (size_t i = 0; i < text.size(); i++)
@@ -61,10 +61,11 @@ public:
 			if(text[i] >= 'A' && text[i] <= 'z')
 			text[i] = (text[i]+amount) % max_value;
 		}
+		return text;
 	}
 	void RunLogic() override {
 		int limit;
-		EnterInt("simple numbers limit", limit);
+		EnterInt("simple numbes limit", limit);
 	}
 };
 
