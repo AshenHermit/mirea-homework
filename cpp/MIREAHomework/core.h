@@ -33,7 +33,7 @@ public:
 	static void EnterDouble(std::string variableName, double& varRef);
 	static void EnterInt(std::string variableName, int& varRef);
 	static void EnterBool(std::string question, bool& varRef);
-	static void EnterString(std::string statement, std::string& varRef);
+	static void EnterString(std::string statement, std::string& varRef, bool useGetLine=false);
 	static bool IsNanOrInfinity(float number);
 	static bool IsNanOrInfinity(double number);
 

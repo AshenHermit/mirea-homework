@@ -81,6 +81,10 @@ public:
 				width /= 2.0;
 			}
 		}
+		//1000000
+		//4171.04
+		//20
+		resultP = std::roundf(resultP * 100.0f) / 100.0f;
 		Prints("p = %f\n", resultP);
 	}
 };

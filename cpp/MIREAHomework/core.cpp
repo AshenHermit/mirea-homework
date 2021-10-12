@@ -69,15 +69,29 @@ void Task::EnterInt(std::string variableName, int& varRef) {
 		std::cin >> varRef;
 	}
 }
+/// <summary>
+/// formatting: "%s (y/n) your answer:", question
+/// </summary>
 void Task::EnterBool(std::string question, bool& varRef) {
 	Print("%s (y/n) your answer:", question.c_str());
 	std::string answer;
 	std::cin >> answer;
 	varRef = answer == "y";
 }
-void Task::EnterString(std::string statement, std::string& varRef) {
+
+//TODO: replace all std::cout to local method
+/// <summary>
+/// formatting: "%s : ", statement
+/// </summary>
+void Task::EnterString(std::string statement, std::string& varRef, bool useGetLine) {
 	Print("%s : ", statement.c_str());
-	std::cin >> varRef;
+	if (useGetLine) {
+		std::cin.ignore();
+		std::getline(std::cin, varRef);
+	}
+	else {
+		std::cin >> varRef;
+	}
 }
 bool Task::IsNanOrInfinity(float number)
 {

@@ -1,7 +1,8 @@
 #pragma once
 #include "../core.h"
 #include <fstream>
-
+#include <unordered_map>
+#include <algorithm>
 
 /// <summary>
 /// Max common divider
@@ -46,6 +47,11 @@ public:
 class Task2 : public Task {
 public:
 	Task2() : Task("Text file manipulations", "") {}
+
+	std::string filepath = "text.txt";
+
+	// actually, my variants are 
+
 	// 32. variant
 	std::string EncryptWithReplacement(std::string text) {
 		for (size_t i = 0; i < text.size(); i++)
@@ -63,14 +69,100 @@ public:
 		}
 		return text;
 	}
+	bool IsAlphabetLetter(char c) {
+		c = std::tolower(c);
+		return (c >= 'a' && c <= 'z');
+	}
+	void FindOperation() {
+		std::string pattern;
+		EnterString("enter pattern", pattern, true);
+		Prints("\n");
+
+		std::string text = ReadTextFile(filepath);
+
+		size_t prevIndex = 0;
+		while (true) {
+			size_t index = text.find(pattern, prevIndex);
+			if (index == std::string::npos) break;
+			int busWidth = 20;
+			std::string pice = text.substr(
+				std::max(0, (int)index - busWidth), 
+				std::min((int)text.size()-1 - (int)index, (int)pattern.size() + busWidth*2));
+
+			char prev = text[std::max(0, (int)index-1)];
+			char next = text[std::min((int)text.size()-1, (int)index+(int)pattern.size())];
+
+			if (!IsAlphabetLetter(prev) && !IsAlphabetLetter(next)) {
+				Prints(pice + "\n");
+			}
+			prevIndex = index+1;
+		}
+	}
+	void SortInAlphabetOrder(std::vector<std::string> &words) {
+		for (int i = 0; i < words.size(); ++i) {
+			for (int j = i; j < words.size(); ++j) {
+				if (std::tolower(words[j][0]) < std::tolower(words[i][0])) {
+					std::string tmp = words[i];
+					words[i] = words[j];
+					words[j] = tmp;
+				}
+			}
+		}
+	}
+	int GetIndexToCompare(size_t index) {
+		if (index == std::string::npos) return std::numeric_limits<int>::max();
+		return (int)index;
+	}
+	std::vector<std::string> SplitWords(std::string text){
+		std::vector<std::string> words = std::vector<std::string>();
+		int preIndex = 0;
+		while (true) {
+			int findResult = std::min({
+				GetIndexToCompare(text.find(" ", preIndex)),
+				GetIndexToCompare(text.find("	", preIndex)),
+				GetIndexToCompare(text.find("\n", preIndex)),
+				GetIndexToCompare(text.find("\r", preIndex)),
+			});
+			if (findResult == std::numeric_limits<int>::max()){
+				break;
+			}
+			words.push_back(text.substr(preIndex, findResult-preIndex));
+			preIndex = findResult + 1;
+		}
+		return words;
+	}
+	void WordsSortOperation(){
+		std::string text = ReadTextFile(filepath);
+		std::vector<std::string> words = SplitWords(text);
+		SortInAlphabetOrder(words);
+		for (int i = 0; i < words.size(); ++i) {
+			Prints(words[i]);
+		}
+	}
+	void ShiftEncryptionOperation() {
+
+	}
+	void CharReplacementEncryptionOperation() {
+
+	}
 	void RunLogic() override {
-		int limit;
-		EnterInt("simple numbes limit", limit);
+		typedef void(Task2::*operationFunction)();
+		std::string choice;
+		Prints("what do you want to do with file \""+filepath+"\"?\n");
+		EnterString("\n(f) find word sequence, \n(s) sort words, \n(er) encrypt with char replacement, \n(es) encrypt with shift \nyour choice", choice);
+
+		std::unordered_map<std::string, operationFunction> operationsMap = std::unordered_map<std::string, operationFunction>
+			{ {"f", &Task2::FindOperation}, {"s", &Task2::WordsSortOperation}, {"er", &Task2::CharReplacementEncryptionOperation}, {"es", &Task2::ShiftEncryptionOperation} };
+
+		if (operationsMap[choice]) {
+			operationFunction func = operationsMap[choice];
+			(*this.*func)();
+		}
 	}
 };
 
 /// <summary>
-/// File
+/// Expressions
 /// </summary>
 class Task3 : public Task {
 public:

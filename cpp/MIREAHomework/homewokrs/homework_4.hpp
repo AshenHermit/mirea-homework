@@ -22,8 +22,20 @@ public:
 		}
 		file.close();
 	}
-	std::vector<int> ReadNumbersVectorFromFile(std::string filename) {
-		std::vector<int> numbers;
+	struct IntArray {
+		IntArray() {}
+		IntArray(Task1::IntArray const& other) {
+			count = other.count;
+			data = other.data;
+		}
+		int count = 0;
+		int* data = nullptr;
+		void Free() {
+			if (data != nullptr) delete[] data;
+		}
+	};
+	IntArray ReadNumbersVectorFromFile(std::string filename) {
+		IntArray numbers = IntArray();
 		std::ifstream file;
 		file.open(filename, std::ios::binary);
 		if (!file.is_open()) {
@@ -35,11 +47,13 @@ public:
 
 		int count = 0;
 		file.read(reinterpret_cast<char*>(&count), sizeof(int));
+		numbers.count = count;
+		numbers.data = new int[numbers.count];
 		for (int i = 0; i < count; i++)
 		{
 			int number = 0;
 			file.read(reinterpret_cast<char*>(&number), sizeof(int));
-			numbers.push_back(number);
+			numbers.data[i] = number;
 		}
 		file.close();
 		return numbers;
@@ -51,16 +65,18 @@ public:
 		WriteRandomNumbersInFile(filename, 10);
 
 		// read
-		std::vector<int> numbers = ReadNumbersVectorFromFile(filename);
+		IntArray numbers = ReadNumbersVectorFromFile(filename);
+		if (numbers.data == nullptr) return;
 		Print("numbers: \n");
 		int sum = 0;
-		for (int i = 0; i < numbers.size(); i++)
+		for (int i = 0; i < numbers.count; i++)
 		{
-			Print("%i\n", numbers[i]);
-			sum += numbers[i];
+			Print("%i\n", numbers.data[i]);
+			sum += numbers.data[i];
 		}
 		Print("sum of numbers: %i", sum);
 		Print("\n\n");
+		numbers.Free();
 	}
 };
 
@@ -104,20 +120,25 @@ public:
 	void RunCircleAreaCalcInterface() {
 		float R;
 		EnterFloat("radius R", R);
+		CheckNumberGreatherThanZero("radius", R);
 		float area = GetCircleArea(R);
 		Print("area of circle with radius %f is %f", R, area);
 	}
 	void RunRectAreaCalcInterface() {
 		float a, b;
 		EnterFloat("side a", a);
+		CheckNumberGreatherThanZero("side a", a);
 		EnterFloat("side b", b);
+		CheckNumberGreatherThanZero("side b", b);
 		float area = GetRectArea(a, b);
 		Print("area of rect with side a = %f and b = %f is %f", a, b, area);
 	}
 	void RunTriangleAreaCalcInterface() {
 		float h, b;
 		EnterFloat("height h", h);
+		CheckNumberGreatherThanZero("height", h);
 		EnterFloat("base b", b);
+		CheckNumberGreatherThanZero("base", b);
 		float area = GetTriangleArea(h, b);
 		Print("area of triangle with height h = %f and base b = %f is %f", h, b, area);
 	}
@@ -244,7 +265,9 @@ public:
 				}
 			}
 
-			line = GetFixedLengthNumber(-centeredY / (float)(height - 1) * 2.0f, 5) + " " + line;
+			line = line.substr(0, line.size()/2) + " " 
+				+ GetFixedLengthNumber(-centeredY / (float)(height - 1) * 2.0f, 5) + " " 
+				+ line.substr(line.size() / 2, 5);
 			canvas += line;
 			canvas += "\n";
 		}
@@ -277,6 +300,9 @@ public:
 			int s1 = RomanCharValue(strNumber[i]);
 			if (i + 1 < strNumber.length())
 			{
+				if (strNumber[i + 1]) {
+					
+				}
 				int s2 = RomanCharValue(strNumber[i + 1]);
 				if (s1 >= s2){
 					result = result + s1;
@@ -451,6 +477,7 @@ public:
 		Print("seller %i got max commissions\n", personMaxCommission+1);
 		Print("all commisions: %f \n", allCommissions);
 		Print("all primary money: %f \n", allPrimaryMoney);
+		Print("whole money: %f \n", (allCommissions + allPrimaryMoney));
 	}
 };
 
@@ -482,6 +509,15 @@ public:
 			reversed += result[i];
 		return reversed;
 	}
+	bool CanConvert(std::string value, int fromBase) {
+		for (std::string::iterator c = value.begin(); c != value.end(); ++c) {
+			int v = vocab.find(std::toupper(*c));
+			if (v >= fromBase) {
+				return false;
+			}
+		}
+		return true;
+	}
 	void RunLogic() override {
 		std::string value;
 		int fromBase;
@@ -492,6 +528,10 @@ public:
 		if(CheckNumberGreatherThanZero("old base", fromBase)) return;
 		EnterInt("enter base to convert value in", toBase);
 		if(CheckNumberGreatherThanZero("new base", toBase)) return;
+		if (!CanConvert(value, fromBase)) {
+			Print("cant convert");
+			return;
+		}
 		std::string result = Convert(value, fromBase, toBase);
 
 		Prints(value+" (%i) = "+result+" (%i)", fromBase, toBase);
