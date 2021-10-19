@@ -219,7 +219,7 @@ public:
 		return text;
 	}
 	void RunLogic() override {
-		float scaleX = 0.06f;
+		float scaleX = 0.04f;
 		float scaleY = 10.0f;
 
 		int height = ceilf(scaleY * 2.0f)+1;
@@ -227,7 +227,7 @@ public:
 
 		std::vector<float> sinValues;
 		for (int x = 0; x < width; ++x) {
-			sinValues.push_back(-sinf(x*PI*scaleX) * ((float)height/2.0f));
+			sinValues.push_back(-sinf(x*PI*scaleX) * ((float)height/2.15f));
 		}
 
 		std::string canvas = "";
@@ -510,8 +510,8 @@ public:
 class Task9 : public Task {
 public:
 	Task9() : Task("Numeral system conversion", "") {}
-	std::string	vocab = std::string("0123456789ABCDEF");
 
+	std::string	vocab = std::string("0123456789ABCDEF");
 	std::string Convert(std::string value, int fromBase, int toBase) {
 		std::string result;
 		int decimal = 0;

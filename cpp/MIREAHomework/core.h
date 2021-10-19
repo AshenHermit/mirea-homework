@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <signal.h>
 
 #define PI 3.14159265f
 
@@ -34,14 +35,19 @@ public:
 	static void EnterInt(std::string variableName, int& varRef);
 	static void EnterBool(std::string question, bool& varRef);
 	static void EnterString(std::string statement, std::string& varRef, bool useGetLine=false);
+	static bool IsNanOrInfinity(int number);
 	static bool IsNanOrInfinity(float number);
 	static bool IsNanOrInfinity(double number);
 
+	static float Mod(float x, float y);
+
+	static std::string NumberToString(int number);
 	static std::string NumberToString(float number);
 	static std::string NumberToString(double number);
 	static bool CheckDivisionByZero(float quotient);
 	static bool CheckNumberGreatherThanZero(std::string variableName, float quotient);
 	static std::string ReadTextFile(std::string filepath);
+	static bool WriteTextInFile(std::string filepath, std::string text);
 	static std::string FixedLengthString(std::string str, int length);
 	void Run();
 	virtual void RunLogic();
@@ -56,7 +62,8 @@ private:
 
 public:
 	TaskRunner();
-
+	static void SignalCallbackHandler(int signum);
+	void SetupConsoleInterface();
 	void RunTask(int taskIndex);
 	void RunAllTasks();
 	void AddTask(Task* taskPtr);

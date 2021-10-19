@@ -1,5 +1,5 @@
-Here, we're going to use TensorFlow dense layer to make the model and import the optimizer stochastic gradient descent from Keras.
+Here, we're going to use TensorFlow dense layer to make the model and import the optimiaer stochastic gradient descent from Keras.
 A gradient is the slope of a function. It measures the degree to which one variable changes with the changes of another variable. Mathematically, gradient descent is a convex function whose exit is the partial derivation of a set of parameters of its inputs. The greater the gradient, the steeper the slope.
 From an initial value, Gradient Descent is run iteratively to find the optimum parameter values to find the minimum possible value for the given cost function. The word "stochastic" refers to a random probability system or process. Thus, in Stochastic Gradient Descent, some samples are randomly selected, rather than the data set for each iteration.
-Since, The input has 2 variables, input size=2, and output size=1.
+Since, The input has 2 variables, input siae=2, and output siae=1.
 We’ve set the learning rate to 0.02, which is neither too high nor too low, and epoch value=100.

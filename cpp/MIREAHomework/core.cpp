@@ -32,6 +32,12 @@ void Task::Prints(std::string _Format, ...)
 }
 bool Task::ProcessCInError()
 {
+	if (std::cin.fail() || std::cin.eof()) {
+		std::cin.clear(); // reset cin state
+		//std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		throw std::exception("std::cin error");
+		return true;
+	}
 	if (!std::cin.good()) {
 		std::cin.clear();
 		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -48,8 +54,7 @@ void Task::EnterFloat(std::string variableName, float& varRef) {
 		std::cin >> varRef;
 	}
 }
-void Task::EnterDouble(std::string variableName, double& varRef)
-{
+void Task::EnterDouble(std::string variableName, double& varRef){
 	//TODO: dont reuse code
 	bool entered = false;
 	while (ProcessCInError() || !entered)
@@ -88,10 +93,16 @@ void Task::EnterString(std::string statement, std::string& varRef, bool useGetLi
 	if (useGetLine) {
 		std::cin.ignore();
 		std::getline(std::cin, varRef);
+		ProcessCInError();
 	}
 	else {
 		std::cin >> varRef;
 	}
+}
+bool Task::IsNanOrInfinity(int number)
+{
+	std::string sNum = std::to_string(number);
+	return (sNum == "-nan(ind)" || sNum == "inf");
 }
 bool Task::IsNanOrInfinity(float number)
 {
@@ -102,6 +113,15 @@ bool Task::IsNanOrInfinity(double number)
 {
 	std::string sNum = std::to_string(number);
 	return (sNum == "-nan(ind)" || sNum == "inf");
+}
+float Task::Mod(float x, float y)
+{
+	return x - y * floorf(x / y);
+}
+std::string Task::NumberToString(int number)
+{
+	if (IsNanOrInfinity(number)) return "---";
+	return std::to_string(number);
 }
 std::string Task::NumberToString(float number)
 {
@@ -151,6 +171,18 @@ std::string Task::ReadTextFile(std::string filepath)
 	ifile.close();
 	return contentsStream.str();
 }
+bool Task::WriteTextInFile(std::string filepath, std::string text)
+{
+	std::ofstream ofile;
+	ofile.open(filepath);
+	if (!ofile.is_open()) {
+		Print("cant read file\n");
+		return false;
+	}
+	ofile << text;
+	ofile.close();
+	return true;
+}
 std::string Task::FixedLengthString(std::string str, int length)
 {
 	return std::string();
@@ -164,13 +196,26 @@ const std::string Task::padding = "    ";
 
 // TaskRunner
 
-TaskRunner::TaskRunner() {}
+TaskRunner::TaskRunner() {
+	SetupConsoleInterface();
+}
+void TaskRunner::SignalCallbackHandler(int signum)
+{
+	//std::cout << "Caught signal " << signum << std::endl;
+	std::cin.clear(); // reset cin state
+	signal(signum, SignalCallbackHandler);
+	//throw std::exception("ctrl c");
+	// Terminate program
+	//exit(signum);
+}
+void TaskRunner::SetupConsoleInterface()
+{
+	signal(SIGINT, SignalCallbackHandler);
+}
 void TaskRunner::RunTask(int taskIndex) {
 	taskIndex = fmaxf(0, fminf(taskIndex, tasks.size() - 1));
-	while (true) {
-		tasks[taskIndex]->Run();
-		system("PAUSE");
-	}
+	tasks[taskIndex]->Run();
+	system("PAUSE");
 }
 void TaskRunner::RunAllTasks() {
 	for (int i = 0; i < tasks.size(); ++i)
@@ -191,7 +236,8 @@ std::string TaskRunner::MakeTasksTable()
 	std::string table = "";
 	int i = 1;
 	for (std::vector<TaskPtr>::iterator task = tasks.begin(); task != tasks.end(); ++task) {
-		table += "    " + std::to_string(i) + ". " + (*task)->name + "\n";
+		if (i > 1) table += "    ";
+		table += std::to_string(i) + ". " + (*task)->name + "\n";
 		i += 1;
 	}
 	return table;
@@ -225,16 +271,27 @@ std::string GenerateNumbersList(const std::vector<int>& list)
 }
 
 void UserLaunchTaskRunner(TaskRunner& taskRunner) {
-	Task::Prints("\n"+taskRunner.MakeTasksTable() + "\n");
-	std::string list = GenerateNumbersList(1, taskRunner.GetTasksCount());
-	Task::Print((std::string("enter task number ") + list + " or \"all\": ").c_str());
-	std::string choice; std::cin >> choice;
-	if (Task::IsNumber(choice)) {
-		int taskIndex = std::stoi(choice) - 1;
-		taskIndex = fmax(0, fmin(taskIndex, taskRunner.GetTasksCount() - 1));
-		taskRunner.RunTask(taskIndex);
-	}
-	else {
-		taskRunner.RunAllTasks();
+	while (true) {
+		try {
+			Task::Prints("\n--------------[[ Tasks Runner Menu ]]--------------\n");
+			Task::Prints(taskRunner.MakeTasksTable() + "\n");
+			std::string list = GenerateNumbersList(1, taskRunner.GetTasksCount());
+			Task::Print((std::string("enter task number ") + list + " or \"all\": ").c_str());
+			std::string choice; std::cin >> choice;
+
+			if (Task::IsNumber(choice)) {
+				int taskIndex = std::stoi(choice) - 1;
+				taskIndex = fmax(0, fmin(taskIndex, taskRunner.GetTasksCount() - 1));
+				taskRunner.RunTask(taskIndex);
+			}
+			else {
+				taskRunner.RunAllTasks();
+			}
+		}
+		catch (std::exception& err) {
+			std::cout << std::endl << std::endl;
+			std::cin.clear();
+			continue;
+		}
 	}
 }
