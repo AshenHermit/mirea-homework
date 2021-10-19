@@ -268,6 +268,9 @@ public:
 			i -= 1;
 		}
 		//converting to final base
+		if (decimal == 0) {
+			result+=vocab[decimal % toBase];
+		}
 		while (decimal > 0) {
 			result += vocab[decimal % toBase];
 			decimal = decimal / toBase;
@@ -286,9 +289,33 @@ public:
 		}
 		return true;
 	}
+	
+	std::string ConvertNumbersInTextList(std::string textList, int fromBase, int toBase) {
+		std::string resultList = "";
+		std::string number = "";
+		for (std::string::iterator ci = textList.begin(); ci != textList.end(); ++ci) {
+			char c = *ci;
+			if (c == ' ' || c == '\n') {
+				if (number!="" && CanConvert(number, fromBase)) {
+					std::string converted = Convert(number, fromBase, toBase);
+					resultList += converted+" ";
+				}
+				number = "";
+			}
+			else {
+				number += c;
+			}
+		}
+		return resultList;
+	}
 
 	void NumberBaseConversionProgram() {
 		std::string filepath = "hex_numbers.txt";
+		std::string text = ReadTextFile(filepath);
+		if (text == "") {
+			Prints("file " + filepath + " is empty or not exists\n");
+		}
+
 		int fromBase = 16;
 		Prints("File \""+filepath+"\" contains numbers with a radix %i, \n", fromBase);
 		Prints("In which radix from 2 to 10 do you want to translate those numbers?\n");
@@ -298,9 +325,14 @@ public:
 			Print("cant convert");
 		}
 
-		std::string text = ReadTextFile(filepath);
-		std::string resultText = "";
-		
+		std::string resultText = ConvertNumbersInTextList(text, fromBase, toBase);
+		bool success = WriteTextInFile("converted_numbers.txt", resultText);
+		if (success) {
+			Prints("numbers successfully converted");
+		}
+		else {
+			Prints("cant write file");
+		}
 	}
 
 	void RunLogic() override {

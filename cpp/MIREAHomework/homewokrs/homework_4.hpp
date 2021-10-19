@@ -324,11 +324,36 @@ public:
 				std::string("") + romanDigits[i - 1] + romanDigits[i - 1] + romanDigits[i], // IIV
 				std::string("") + romanDigits[i - 1] + romanDigits[i] + romanDigits[i - 1], // IVI
 				std::string("") + romanDigits[i] + romanDigits[i - 1] + romanDigits[i - 1] + romanDigits[i - 1] + romanDigits[i - 1], // VIIII
+				// IM
 			};
 
 			for (int p = 0; p < 3; p++)
 			{
 				if (romanNumber.find(badPatterns[p]) != std::string::npos) 
+				{
+					return false;
+				}
+			}
+		}
+		// IC
+		for (int i = 3; i < romanDigits.size(); ++i)
+		{
+			for (int j = 0; j < i-2; ++j)
+			{
+				std::string badPattern = std::string("") + romanDigits[j] + romanDigits[i];
+				if (romanNumber.find(badPattern) != std::string::npos)
+				{
+					return false;
+				}
+			}
+		}
+		// VL
+		for (int i = 1; i <= 5; i += 2)
+		{
+			for (int j = 1; j <= i - 2; j += 2)
+			{
+				std::string badPattern = std::string("") + romanDigits[j] + romanDigits[i];
+				if (romanNumber.find(badPattern) != std::string::npos)
 				{
 					return false;
 				}
