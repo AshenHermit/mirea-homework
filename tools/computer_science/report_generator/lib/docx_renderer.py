@@ -264,7 +264,6 @@ class DocxReportRenderer:
 
         return hyperlink
         
-
     def add_chapter(self, ch_el:Tag, index=0):
         # title
         pg = self.make_paragraph(self.document, self.document_config.chapter_title_alignment)
