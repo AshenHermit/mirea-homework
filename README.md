@@ -1,1 +1,2 @@
-# MIREA Homework for Procedural Programming
+## mirea stuff
+Свалка моих инструментов, работ, полезных программ.
