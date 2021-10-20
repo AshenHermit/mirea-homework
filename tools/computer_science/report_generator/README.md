@@ -33,7 +33,7 @@ optional arguments:
 > python report_generator.py "report/document.html" "report/generated.docx"
 ```
 
-## Элемены html документа
+## Элементы html документа
 ### Структура
 * `<report author="студент" group_name="инбо..." title="заголовок" recipient_status="че за препод" recipient="препод">` - корень документа. его аттрибуты используются в замене данных в титульном листе.
 * `<chapter title="Раздел первый">` - раздел.
