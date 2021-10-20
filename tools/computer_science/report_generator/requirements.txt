@@ -2,3 +2,4 @@ python-docx
 markdown
 beautifulsoup4
 latex2mathml
+regex
