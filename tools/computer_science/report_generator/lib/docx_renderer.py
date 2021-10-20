@@ -34,11 +34,12 @@ class DocumentConfig:
     font_size:int = 14
     caption_font_size:int = 12
     table_of_contents_title:str = "Содержание"
-    table_of_contents_alignment:str = "center"
+    table_of_contents_title_alignment:str = "center"
     line_spacing:float = 1.5
     paragraph_first_line_indent:Cm = Cm(1.25)
     paragraph_left_indent:Cm = Cm(0.0)
     chapter_title_format:str = "{0}  {1} "
+    single_formula_alignment:str = "right"
 
 
 class DocxReportRenderer:
@@ -77,10 +78,10 @@ class DocxReportRenderer:
         self.html = self.html.replace("\n", "")
         self.soup = BeautifulSoup(self.html, 'html.parser')
 
-    def latex_to_word(self, latex_input, font_size=14):
+    def latex_to_word(self, latex_input, font_size=14, label=""):
         font_size = font_size*2
 
-        mathml = latex_to_mathml(latex_input)
+        mathml = latex_to_mathml(latex_input, label)
         tree = etree.fromstring(mathml)
         xslt = etree.parse(MML2OMMLXML_PATH)
         transform = etree.XSLT(xslt)
@@ -144,7 +145,8 @@ class DocxReportRenderer:
 
     def add_formula_tag_to_paragraph(self, paragraph:docx.text.paragraph.Paragraph, f_tag:Tag, font_size=14):
         latex_text = LatexExtender(f_tag.get("flags", "")).extend_latex(f_tag.text)
-        word_math = self.latex_to_word(latex_text, font_size)
+        label = f_tag.get("label", "")
+        word_math = self.latex_to_word(latex_text, font_size, label)
         paragraph._element.append(word_math)
 
     def process_paragraph_child(self, paragraph:docx.text.paragraph.Paragraph, tag:Tag, font_size=14, index=1):
@@ -181,8 +183,14 @@ class DocxReportRenderer:
             return enum[value]
         return enum[self.document_config.paragraph_alignment]
 
-    def add_paragraph(self, pg_tag:Tag):
-        pg = self.make_paragraph(self.document, pg_tag.get("align", self.document_config.paragraph_alignment))
+    def add_paragraph_tag(self, pg_tag:Tag):
+        align = pg_tag.get("align", self.document_config.paragraph_alignment)
+        children = list(pg_tag.children)
+        if len(children)==1:
+            if children[0].name == "f":
+                align = self.document_config.single_formula_alignment
+        
+        pg = self.make_paragraph(self.document, align)
         self.render_tag_to_paragraph(pg, pg_tag)
         return pg
 
@@ -190,12 +198,20 @@ class DocxReportRenderer:
         pg = self.make_paragraph(self.document, img_tag.get("align", self.document_config.picture_alignment))
 
         run = pg.add_run()
-        run.add_picture(self.html_file_directory + img_tag.get("src", ""))
+
+        width = img_tag.get("width", None)
+        if not width is None: width = Cm(int(width))
+        height = img_tag.get("height", None)
+        if not height is None: height = Cm(int(height))
+
+        run.add_picture(self.html_file_directory + img_tag.get("src", ""), width=width, height=height)
         caption = img_tag.get("caption", "")
         if caption!="":
             run.add_break(WD_BREAK.LINE)
             run.add_text(caption)
             run.font.size = Pt(self.document_config.caption_font_size)
+        
+        self.make_paragraph(self.document)
         return pg
 
     def delete_paragraph(self, paragraph:docx.text.paragraph.Paragraph):
@@ -275,7 +291,7 @@ class DocxReportRenderer:
         for tag in paragraphs:
             # <p> tags
             if tag.name == "p":
-                self.add_paragraph(tag)
+                self.add_paragraph_tag(tag)
             # <img> tags
             elif tag.name == "img":
                 self.add_picture(tag)
@@ -293,9 +309,9 @@ class DocxReportRenderer:
 
     def add_table_of_contents(self, chapter_names):
         # title
-        pg = self.make_paragraph(self.document)
-        pg.alignment = self.get_paragraph_alignment(self.document_config.table_of_contents_alignment)
-        title = self.make_paragraph_text_run(pg, self.document_config.table_of_contents_title)
+        pg = self.make_paragraph(self.document, self.document_config.table_of_contents_title_alignment)
+        title = self.make_paragraph_text_run(pg, self.document_config.table_of_contents_title.upper())
+        title.bold = True
 
         # list
         pg = self.make_paragraph(self.document)

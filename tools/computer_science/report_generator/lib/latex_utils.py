@@ -1,13 +1,42 @@
 import re
 import regex
+from lxml import etree
+from bs4 import BeautifulSoup
 
 import latex2mathml.converter
 
-def latex_to_mathml(latex_text):
-    latex_text = latex2mathml.converter.convert(latex_text)
-    latex_text = re.compile(r"(\\newline)|(\\break)|(\\n)").sub("<mspace linebreak='newline'/>", latex_text)
+def add_label_to_formula(latex_text, label):
+    soup = BeautifulSoup(latex_text, "xml")
+    math = soup.find("math")
+    row = list(math.children)[0]
+    table_row = soup.new_tag("mtr")
+    mtd = soup.new_tag("mtd")
+    row.wrap(mtd)
+    mtd.wrap(table_row)
+    mtable = soup.new_tag("mtable")
+    table_row.wrap(mtable)
+
+    mo = soup.new_tag("mo")
+    mo.string = "#"
+    math.append(mo)
+    mfenced = soup.new_tag("mfenced", separators="|")
+    mfenced.string = "#"
+    math.append(mfenced)
+    mrow = soup.new_tag("mrow")
+    mfenced.append(mrow)
+    mn = soup.new_tag("mn")
+    mn.string = label
+    mrow.append(mn)
+
+    latex_text = str(math)
+
     return latex_text
 
+def latex_to_mathml(latex_text, label=""):
+    latex_text = latex2mathml.converter.convert(latex_text)
+    latex_text = re.compile(r"(\\newline)|(\\break)|(\\n)").sub("<mspace linebreak='newline'/>", latex_text)
+    if label!="": latex_text = add_label_to_formula(latex_text, label)
+    return latex_text
 
 class LatexExtender:
     def __init__(self, flags) -> None:

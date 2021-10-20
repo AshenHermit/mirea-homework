@@ -44,7 +44,7 @@ optional arguments:
 * `<b>` - жирный текст
 * `<i>` - курсив
 ### Формулы
-* `<f flags="cs">` - формула в формате [latex](https://ru.overleaf.com/learn/latex/Mathematical_expressions).  
+* `<f flags="cs" label="1">` - формула в формате [latex](https://ru.overleaf.com/learn/latex/Mathematical_expressions).  
 Флаг `cs` (*`computer science`*) отвечает за некоторые дополнительные функции:  
 `!a` или `!(a+b...)` - отрицание, превращается в выражение с чертой сверху.  
 `v` - символ дизъюнкции. `^` - символ конъюнкции.  
@@ -53,6 +53,8 @@ optional arguments:
 * `<img src="image1.jpg" caption="Рисунок">` - изображение.  
 `src` принимает путь к локальному файлу, относительно html документа.  
 `caption` - подпись.
+`width` - ширина в сантиметрах
+`height` - высота в сантиметрах
 ### Таблицы
 * `<table caption="Таблица 1" parse="simple" cell-width="32" cell-height="2">` - таблица.  
 `caption` - подпись.  

@@ -1,0 +1,1 @@
+python ../../report_generator.py "6th_practical.html" "generated.docx" --title-page="../../res/title_page.docx"
