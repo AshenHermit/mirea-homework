@@ -36,7 +36,11 @@ class LatexExtender:
     @staticmethod
     def computer_science_extension(expr):
         def format_braces(text):
-            for match in regex.finditer(r"\(((?>[^\(\)]+|(?R))*)\)", text):
+            next_start_pos = 0
+            def search():
+                return regex.search(r"\(((?>[^\(\)]+|(?R))*)\)", text, pos=next_start_pos)
+            match = search()
+            while not match is None:
                 span = match.span()
                 sign_pos = span[0]-1
                 inner_text = match.groups()[0]
@@ -44,6 +48,8 @@ class LatexExtender:
                 if sign_pos>=0:
                     if text[sign_pos]=="!":
                         text = text[:span[0]-1]+"\\bar{"+inner_text+"}"+text[span[1]:]
+                next_start_pos = span[1]+1
+                match = search()
             return text
 
         expr = expr.replace("v", "{\\vee}")

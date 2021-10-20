@@ -8,9 +8,9 @@ def main():
     parser.add_argument("--title-page", default="res/title_page.docx", help="path to title page .docx file")
     args = parser.parse_args()
     
-    converter = DocxReportRenderer(args.title_page)
-    converter.open_html_file(args.html_document)
-    converter.convert_to_docx(args.output)
+    renderer = DocxReportRenderer(args.title_page)
+    renderer.open_html_file(args.html_document)
+    renderer.convert_to_docx(args.output)
 
 if __name__ == '__main__':
     main()
