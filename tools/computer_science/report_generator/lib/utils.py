@@ -18,3 +18,13 @@ def text_to_simple_table(text):
     rows = list(filter_empty_elements(text.split("\n")))
     table = list(map(lambda row: filter_empty_elements(re.split('\\t|    ', row)), rows))
     return table
+
+def try_turn_string_to_number(value):
+    if not type(value) is str: return value
+    if value.replace(".", "").isnumeric():
+        if value.find(".")!=-1:
+            return float(value)
+        else:
+            return int(value)
+    else:
+        return value

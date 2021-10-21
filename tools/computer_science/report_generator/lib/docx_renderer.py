@@ -1,6 +1,8 @@
+from typing import Any
 from bs4.element import NavigableString, Tag
 import docx
 import docx.document
+import docx.oxml
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 import docx.text
@@ -16,7 +18,7 @@ from docx.shared import Pt
 import re
 import markdown
 
-from lib.utils import dir_name_of_file, real_path_of_file, text_to_simple_table
+from lib.utils import dir_name_of_file, real_path_of_file, try_turn_string_to_number, text_to_simple_table
 from lib.latex_utils import LatexExtender, latex_to_mathml
 
 from pathlib import Path
@@ -52,6 +54,18 @@ class DocxReportRenderer:
 
         self.xml_namespaces = self.get_xml_namespaces()
 
+        self.shared_vars = {}
+
+    def get_shared_var(self, key:str, default:Any):
+        if key in self.shared_vars:
+            return self.shared_vars[key]
+        else:
+            return default
+    def get_tag_attr(self, tag:Tag, key:str, default:Any):
+        return try_turn_string_to_number(tag.get(key, default))
+    def add_shared_var(self, key:str, value:str):
+        self.shared_vars[key] = try_turn_string_to_number(value)
+    
     def get_xml_namespaces(self):
         return 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '\
             + 'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"'
@@ -72,10 +86,27 @@ class DocxReportRenderer:
         else:
             self.load_html("")
             raise FileNotFoundError()
-            
+
+    def scan_for_var_tags(self, soup:BeautifulSoup):
+        var_tags = soup.find_all("var")
+        for var in var_tags:
+            var:Tag = var
+            if var.has_attr("name"): 
+                self.add_shared_var(var.get("name"), var.decode_contents())
+    def apply_shared_vars(self, html:str):
+        for key in self.shared_vars.keys():
+            regex = re.compile(r"(?![a-zA-Z])\$"+key+r"(?![a-zA-Z])")
+            value = str(self.shared_vars[key])
+            html = regex.sub(value, html)
+        return html
+
     def load_html(self, html=""):
         self.html = html
         self.html = self.html.replace("\n", "")
+        self.soup = BeautifulSoup(self.html, 'html.parser')
+        # apply variables
+        self.scan_for_var_tags(self.soup)
+        self.html = self.apply_shared_vars(self.html)
         self.soup = BeautifulSoup(self.html, 'html.parser')
 
     def latex_to_word(self, latex_input, font_size=14, label=""):
@@ -171,7 +202,7 @@ class DocxReportRenderer:
                 self.apply_tag_style_to_run(run, tag)
 
     def render_tag_to_paragraph(self, paragraph:docx.text.paragraph.Paragraph, tag:Tag):
-        font_size = int(tag.get("font-size", str(self.document_config.font_size)))
+        font_size = self.get_tag_attr(tag, "font-size", self.document_config.font_size)
 
         for i,child in enumerate(tag.children):
             self.process_paragraph_child(paragraph, child, index=i)
@@ -199,12 +230,12 @@ class DocxReportRenderer:
 
         run = pg.add_run()
 
-        width = img_tag.get("width", None)
+        width = self.get_tag_attr(img_tag, "width", None)
         if not width is None: width = Cm(int(width))
-        height = img_tag.get("height", None)
+        height = self.get_tag_attr(img_tag, "height", None)
         if not height is None: height = Cm(int(height))
 
-        run.add_picture(self.html_file_directory + img_tag.get("src", ""), width=width, height=height)
+        run.add_picture(self.html_file_directory + self.get_tag_attr(img_tag, "src", ""), width=width, height=height)
         caption = img_tag.get("caption", "")
         if caption!="":
             run.add_break(WD_BREAK.LINE)
@@ -229,8 +260,8 @@ class DocxReportRenderer:
             run.font.size = Pt(self.document_config.caption_font_size)
 
         table_data = text_to_simple_table(table_tag.renderContents().decode("utf-8"))
-        cell_width = int(table_tag.get("cell-width", "10"))
-        cell_height = int(table_tag.get("cell-height", "10"))
+        cell_width = self.get_tag_attr(table_tag, "cell-width", 10)
+        cell_height = self.get_tag_attr(table_tag, "cell-height", 10)
 
         #TODO: add size checking. actually better to do a class for table
         table = self.document.add_table(len(table_data), len(table_data[0]))
@@ -279,12 +310,77 @@ class DocxReportRenderer:
         r.font.underline = True
 
         return hyperlink
-        
+
+    def add_bookmark(self, paragraph, bookmark_text, bookmark_name, font_size=14) -> docx.text.run.Run:
+        run = paragraph.add_run()
+        run.font.size = Pt(font_size)
+        run.font.name = self.document_config.font_name
+        tag = run._r  # for reference the following also works: tag =  document.element.xpath('//w:r')[-1]
+        start = docx.oxml.shared.OxmlElement('w:bookmarkStart')
+        start.set(docx.oxml.ns.qn('w:id'), '0')
+        start.set(docx.oxml.ns.qn('w:name'), bookmark_name)
+        tag.append(start)
+
+        text = docx.oxml.OxmlElement('w:r')
+        text.text = bookmark_text
+        tag.append(text)
+
+        end = docx.oxml.shared.OxmlElement('w:bookmarkEnd')
+        end.set(docx.oxml.ns.qn('w:id'), '0')
+        end.set(docx.oxml.ns.qn('w:name'), bookmark_name)
+        tag.append(end)   
+        return run
+
+    def add_bookmark_page_reference(self, paragraph:docx.text.paragraph.Paragraph, bookmark_name:str):
+        # run = paragraph.add_run()
+        # tag = run._r
+
+        start_r = docx.oxml.OxmlElement('w:r')
+        start = docx.oxml.shared.OxmlElement('w:fldChar')
+        start.set(docx.oxml.ns.qn('w:fldCharType'), 'begin')
+        start_r.append(start)
+        paragraph._p.append(start_r)
+
+        instr_text_r = docx.oxml.OxmlElement('w:r')
+        instr_text = docx.oxml.shared.OxmlElement('w:instrText')
+        instr_text.set(docx.oxml.ns.qn('xml:space'), 'preserve')
+        instr_text.text = f"PAGEREF {bookmark_name} \\h"
+        instr_text_r.append(instr_text)
+        paragraph._p.append(instr_text_r)
+
+        separate_r = docx.oxml.OxmlElement('w:r')
+        separate = docx.oxml.shared.OxmlElement('w:fldChar')
+        separate.set(docx.oxml.ns.qn('w:fldCharType'), 'separate')
+        separate_r.append(separate)
+        paragraph._p.append(separate_r)
+
+        text_r = docx.oxml.OxmlElement('w:r')
+        rpr = docx.oxml.shared.OxmlElement('w:rPr')
+        noProof = docx.oxml.shared.OxmlElement('w:noProof')
+        rpr.append(noProof)
+        text = docx.oxml.shared.OxmlElement('w:t')
+        text.text = "1"
+        text_r.append(noProof)
+        text_r.append(text)
+        paragraph._p.append(text_r)
+
+        end_r = docx.oxml.OxmlElement('w:r')
+        end = docx.oxml.shared.OxmlElement('w:fldChar')
+        end.set(docx.oxml.ns.qn('w:fldCharType'), 'end')
+        end_r.append(end)
+        paragraph._p.append(end_r)
+
+    def get_bookmark_name(self, text:str):
+        text = text.lower()
+        text = text.replace("\n", " ").replace("\t", "_").replace(" ", "_")
+        text = text[:30]
+        return text
     def add_chapter(self, ch_el:Tag, index=0):
         # title
         pg = self.make_paragraph(self.document, self.document_config.chapter_title_alignment)
         title_text = self.document_config.chapter_title_format.format(index+1, ch_el["title"].upper())
-        title = self.make_paragraph_text_run(pg, title_text)
+        bookmark_name = self.get_bookmark_name(title_text)
+        title = self.add_bookmark(pg, title_text, bookmark_name, self.document_config.font_size)
         title.bold = True
         
         paragraphs = ch_el.findChildren()
@@ -318,9 +414,11 @@ class DocxReportRenderer:
         pg.paragraph_format.first_line_indent = self.document_config.paragraph_left_indent
 
         for i,name in enumerate(chapter_names):
-            line = self.document_config.chapter_title_format.format(i+1, name.upper())
-            pg.add_run(line)
+            title = self.document_config.chapter_title_format.format(i+1, name.upper())
+            pg.add_run(title)
             self.add_ptab(pg)
+            pg.add_run(" ")
+            self.add_bookmark_page_reference(pg, self.get_bookmark_name(title))
             pg.add_run().add_break(WD_BREAK.LINE)
         
         self.document.add_page_break()
@@ -347,7 +445,7 @@ class DocxReportRenderer:
             regex = re.compile(r"attr_" + key)
             replace = patterns[key]
             self.docx_replace_regex(self.document, regex, replace)
-        
+
     def create_docx_from_html(self):
         # <report> tag
         report_tag = self.soup.find("report")
