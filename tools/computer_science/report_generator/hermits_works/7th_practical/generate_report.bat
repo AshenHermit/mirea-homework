@@ -1,1 +1,1 @@
-python ../../report_generator.py "7th_practical.html" "generated.docx" --title-page="../../res/title_page.docx"
+python ../../report_generator.py "7th_practical.html" "generated.docx" --title-page="../../res/title_page.docx" --vars="../vars.html"
