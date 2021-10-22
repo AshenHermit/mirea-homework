@@ -18,8 +18,10 @@ document.html                  |  generated.docx
 * Использование [переменных](#переменные).
 
 ## Использование
-Для работы нужен `python 3.8+`  
-### Установка зависимостей
+### Требования
+* `python 3.8+`.
+* (опционально) [ImageMagick](https://imagemagick.org/index.php), для конвертации psd в png и jpg.
+### Установка необходимых модулей
 ```
 > pip install -r requirements.txt
 ```
