@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "report_generator.py",
             "console": "integratedTerminal",
-            "args": ["hermits_works/6th_practical/6th_practical.html", "hermits_works/6th_practical/generated.docx"]
+            "args": ["hermits_works/6th_practical/6th_practical.html", "hermits_works/6th_practical/generated.docx", "--vars=hermits_works/vars.html"]
         }
     ]
 }

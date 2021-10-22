@@ -4,6 +4,7 @@
 Копирует документ с титульным листом `res/title_page.docx` и добавляет в него отформатированное содержимое упрощенного html файла (подобного этому [report/document.html](report/document.html)). Сгенерированный docx документ содержит то форматирование, которое требуется соблюдать в отчете.
 Упрощен ввод [формул](#формулы), формулы можно записывать в формате [latex](https://ru.overleaf.com/learn/latex/Mathematical_expressions), который тоже немного упрощен.
 
+(скрины старые)
 document.html                  |  generated.docx
 :-----------------------------:|:-------------------------:
 ![](res/readme/screenshot_1.jpg) | ![](res/readme/screenshot_2.jpg)
@@ -14,7 +15,7 @@ document.html                  |  generated.docx
 * Простая запись [формул](#формулы).
 * Запись простейших [таблиц](#таблицы).
 * Добавление [изображений](#изображения) с диска.
-* Использование [переменных](#переменные)
+* Использование [переменных](#переменные).
 
 ## Использование
 Для работы нужен `python 3.8+`  
@@ -33,7 +34,10 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --title-page TITLE_PAGE
-                        path to title page .docx file
+                        path to title page .docx file. default: "res/title_page.docx"
+  --vars VARS           path to optional .html file where variables are defined
+  --magick-convert-cmd MAGICK_CONVERT_CMD
+                        image magick convert command. default: "convert"
 ```
 пример
 ```
@@ -58,7 +62,7 @@ optional arguments:
 (для разрыва формул лучше использовать несколько параграфов, как [тут](report/document.html))
 ### Изображения
 * `<img src="image1.jpg" caption="Рисунок">` - изображение.  
-`src` принимает путь к локальному файлу, относительно html документа.  
+`src` принимает путь к локальному файлу, относительно html документа. поддерживаются форматы: `.png` `.jpg` `.psd`  
 `caption` - подпись.
 `width` - ширина в сантиметрах.
 `height` - высота в сантиметрах.
@@ -74,4 +78,5 @@ optional arguments:
 `name` - имя переменной.  
 *value* - значение. может быть текстом, числом.  
 ссылки на переменные, в любом месте документа, будут заменены на их значения, они записываются так: `$имя_переменной`  
+переменные также могут быть записаны в отдельном .html документе ([пример](hermit_works/vars.html)), который можно указать при запуске программы.
 пример: `<img src="karno_map_2_1.jpg" caption="..." width="$karno_map_image_width"/>`
