@@ -38,6 +38,9 @@ class ImageProvider():
     def _psd_image_processor(self, filepath):
         export_path = filepath[:filepath.rfind(".")+1] + self.psd_export_extension
         cmd = f'{self.image_magick_convert_cmd} "{filepath}[0]" "{export_path}"'
-        print(f'converting psd to {self.psd_export_extension}: \n\t"{filepath}" to {export_path}')
+        
+        name_of_orig = filepath[filepath.rfind("/")+1:]
+        name_of_export = export_path[export_path.rfind("/")+1:]
+        print(f'converting psd to {self.psd_export_extension}: \n\t"{name_of_orig}" to {name_of_export}')
         os.system(cmd)
         return export_path
