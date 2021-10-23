@@ -116,7 +116,7 @@ class DocxReportRenderer:
             run.italic = True
 
     def add_formula_tag_to_paragraph(self, paragraph:docx.text.paragraph.Paragraph, f_tag:Tag, font_size=14):
-        latex_text = LatexExtender(f_tag.get("flags", "")).extend_latex(f_tag.text)
+        latex_text = LatexExtender(f_tag.get("flags", "cs")).extend_latex(f_tag.text)
         label = f_tag.get("label", "")
         word_math = self.document.latex_to_word(latex_text, font_size, label)
         paragraph._element.append(word_math)
@@ -161,25 +161,25 @@ class DocxReportRenderer:
 
     def add_table(self, table_tag:Tag):
         # caption
-        self.document.make_paragraph(self.document)
         caption = table_tag.get("caption", "")
         if caption!="":
             pg = self.document.make_paragraph(self.document, "center")
             run = pg.add_run(caption)
             run.font.size = Pt(self.document.config.caption_font_size)
 
-        table_data = text_to_simple_table(table_tag.renderContents().decode("utf-8"))
-        cell_width = self.get_tag_attr(table_tag, "cell-width", 10)
-        cell_height = self.get_tag_attr(table_tag, "cell-height", 10)
+        cols_count = self.get_tag_attr(table_tag, "width", 1)
+        table_data = text_to_simple_table(table_tag.renderContents().decode("utf-8"), cols_count)
+        cell_width = self.get_tag_attr(table_tag, "cell-width", None)
+        cell_height = self.get_tag_attr(table_tag, "cell-height", None)
 
         #TODO: add size checking. actually better to do a class for table
         table = self.document.add_table(len(table_data), len(table_data[0]))
         table.alignment = WD_TABLE_ALIGNMENT.CENTER
         table.style = 'Table Grid'
         for r,row in enumerate(table.rows):
-            row.height = Pt(cell_height)
+            if not cell_height is None: row.height = Pt(cell_height)
             for c,cell in enumerate(row.cells):
-                cell.width = Pt(cell_width)
+                if not cell_width is None: cell.width = Pt(cell_width)
                 cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
                 self.document.delete_paragraph(cell.paragraphs[0])
 
@@ -189,6 +189,8 @@ class DocxReportRenderer:
                 if len(children)>0:
                     tag = children[0]
                     self.process_paragraph_child(pg, tag, self.document.config.font_size)
+        
+        self.document.make_paragraph(self.document)
 
     def add_picture(self, img_tag:Tag):
         pg = self.document.make_paragraph(self.document, img_tag.get("align", self.document.config.picture_alignment))
@@ -300,4 +302,5 @@ class DocxReportRenderer:
         except Exception as e:
             traceback.print_exc()
             print("something went wrong")
+            os.system('pause')
         
