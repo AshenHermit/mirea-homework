@@ -340,6 +340,51 @@ public:
 	}
 };
 
+
+/// <summary>
+/// Another operations with text files
+/// </summary>
+class Task5 : public Task {
+public:
+	int n = 5;
+	int* a;
+
+	Task5() : Task("Another operations with text files", "some task with files") {
+		a = new int[n];
+	}
+	~Task5() {
+		delete[] a;
+	}
+
+
+	// Создает все перестановки шариков, число которых равно t
+	void Generate(int t)
+	{
+		if (t == n - 1)
+		{	//Вывод очередной перестановки
+			for (int i = 0; i < n; ++i)
+				std::cout << a[i] << " ";
+			std::cout << std::endl;
+		}
+		else
+		{
+			for (int j = t; j < n; ++j)
+			{
+				std::swap(a[t], a[j]);
+				t++;
+				Generate(t);
+				t--;
+				std::swap(a[t], a[j]);
+			}
+		}
+	}
+	//Запускаем процесс обмена //a[t] co всеми последующими
+	//Рекурсивный вызов
+	void RunLogic() override {
+		Generate(5);
+	}
+};
+
 class Homework {
 public:
 	Homework() {}
@@ -349,6 +394,7 @@ public:
 		taskRunner.AddTask(new Task2());
 		taskRunner.AddTask(new Task3());
 		taskRunner.AddTask(new Task4());
+		taskRunner.AddTask(new Task5());
 
 		return taskRunner;
 	};

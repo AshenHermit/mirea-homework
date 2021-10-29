@@ -39,7 +39,8 @@ class DocumentConfig:
     picture_alignment:str = 'center'
     table_alignment:str = 'center'
     font_size:int = 14
-    caption_font_size:int = 12
+    caption_font_size:int = 14
+    caption_line_spacing:float = 1
     table_of_contents_title:str = "Содержание"
     table_of_contents_title_alignment:str = "center"
     line_spacing:float = 1.5
@@ -75,6 +76,22 @@ class ExtendedDocument(docx.document.Document):
 
         prefix_map = {"m": "http://schemas.openxmlformats.org/officeDocument/2006/math"}
 
+        # improving formula with label
+        for run in root.findall('.//m:eqArr', prefix_map):
+            params = etree.fromstring(f"""
+                            <m:eqArrPr {self.xml_namespaces}>
+                                <m:maxDist m:val="1"/>
+                                <m:ctrlPr>
+                                    <w:rPr>
+                                        <w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
+                                        <w:i/>
+                                        <w:szCs w:val="{font_size}"/>
+                                    </w:rPr>
+                                </m:ctrlPr>
+                            </m:eqArrPr>""")
+            run.insert(0, params)
+
+        # applying font size
         for run in root.findall('.//m:sSub', prefix_map):
             params = etree.fromstring(f"""
                             <m:sSubPr {self.xml_namespaces}>

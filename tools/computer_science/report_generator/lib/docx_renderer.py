@@ -33,8 +33,8 @@ import json
 dir_path = dir_name_of_file(__file__)
 
 class DocxReportRenderer:
-    def __init__(self, title_page_filepath="title_page.docx", vars_html_filepath="", image_magick_convert_cmd="convert") -> None:
-        self.title_page_filepath = title_page_filepath
+    def __init__(self, vars_html_filepath="", image_magick_convert_cmd="convert") -> None:
+        self.title_page_filepath = ""
         self.html_file_directory = ""
         self.image_provider = ImageProvider("", image_magick_convert_cmd)
         self.soup: BeautifulSoup = None
@@ -64,19 +64,19 @@ class DocxReportRenderer:
         self.shared_vars[key] = try_turn_string_to_number(value)
 
     def create_new_document(self) -> ExtendedDocument:
-        if self.title_page_filepath == "":
+        if not self.title_page_filepath:
             doc = ExtendedDocument.from_document(docx.Document())
         else:
             doc:docx.document.Document = ExtendedDocument.from_document(docx.Document(self.title_page_filepath))
             doc.add_page_break()
             return doc
-        
+    
     def open_html_file(self, filepath):
         file = Path(filepath)
         if file.exists():
-            self.load_html(file.read_text(encoding='utf-8'))
             self.html_file_directory = dir_name_of_file(filepath)
             self.image_provider.set_working_directory(self.html_file_directory)
+            self.load_html(file.read_text(encoding='utf-8'))
         else:
             self.load_html("")
             raise FileNotFoundError()
@@ -102,6 +102,10 @@ class DocxReportRenderer:
         self.scan_for_var_tags(self.soup)
         self.html = self.apply_shared_vars(self.html)
         self.soup = BeautifulSoup(self.html, 'html.parser')
+
+        title_page_path = self.soup.find("report")["title_page"]
+        self.title_page_filepath = self.html_file_directory + title_page_path
+        self.document = self.create_new_document()
     
     def write_title_page(self):
         title_page = etree.parse(self.title_page_filepath)
@@ -163,7 +167,9 @@ class DocxReportRenderer:
         # caption
         caption = table_tag.get("caption", "")
         if caption!="":
-            pg = self.document.make_paragraph(self.document, "center")
+            pg = self.document.make_paragraph(self.document, "left")
+            pg.paragraph_format.first_line_indent = pg.paragraph_format.left_indent
+            pg.paragraph_format.line_spacing = self.document.config.caption_line_spacing
             run = pg.add_run(caption)
             run.font.size = Pt(self.document.config.caption_font_size)
 
@@ -194,6 +200,7 @@ class DocxReportRenderer:
 
     def add_picture(self, img_tag:Tag):
         pg = self.document.make_paragraph(self.document, img_tag.get("align", self.document.config.picture_alignment))
+        pg.paragraph_format.line_spacing = self.document.config.caption_line_spacing
 
         run = pg.add_run()
 
@@ -293,6 +300,7 @@ class DocxReportRenderer:
     def convert_to_docx(self, output_filepath=""):
         try:
             if output_filepath=="": raise Exception("filepath cant be empty")
+            Path(dir_name_of_file(output_filepath)).mkdir(exist_ok=True)
             document = self.create_docx_from_html()
             document.save(output_filepath)
             print()

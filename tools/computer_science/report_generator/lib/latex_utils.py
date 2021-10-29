@@ -5,10 +5,11 @@ from bs4 import BeautifulSoup
 
 import latex2mathml.converter
 
-def add_label_to_formula(latex_text, label):
-    soup = BeautifulSoup(latex_text, "xml")
+def add_label_to_formula(mathml, label):
+    soup = BeautifulSoup(mathml, "xml")
     math = soup.find("math")
     row = list(math.children)[0]
+    del math["display"]
     table_row = soup.new_tag("mtr")
     mtd = soup.new_tag("mtd")
     row.wrap(mtd)
@@ -16,27 +17,43 @@ def add_label_to_formula(latex_text, label):
     mtable = soup.new_tag("mtable")
     table_row.wrap(mtable)
 
+    mrow = math.find("mrow")
+    maligngroup = soup.new_tag("maligngroup")
+    mrow.insert(0, maligngroup)
+
+    top_mrow = soup.new_tag("mrow")
+    mtable.wrap(top_mrow)
+    maligngroup = soup.new_tag("maligngroup")
+    top_mrow.insert(0, maligngroup)
+    mtd = soup.new_tag("mtd")
+    top_mrow.wrap(mtd)
+    mtr = soup.new_tag("mtr")
+    mtd.wrap(mtr)
+    mtable = soup.new_tag("mtable")
+    mtr.wrap(mtable)
+    mtable["groupalign"] = "center right"
+
     mo = soup.new_tag("mo")
     mo.string = "#"
-    math.append(mo)
+    top_mrow.append(mo)
     mfenced = soup.new_tag("mfenced", separators="|")
     mfenced.string = "#"
-    math.append(mfenced)
+    top_mrow.append(mfenced)
     mrow = soup.new_tag("mrow")
     mfenced.append(mrow)
     mn = soup.new_tag("mn")
     mn.string = label
     mrow.append(mn)
 
-    latex_text = str(math)
+    mathml = str(math)
 
-    return latex_text
+    return mathml
 
 def latex_to_mathml(latex_text, label=""):
-    latex_text = latex2mathml.converter.convert(latex_text)
-    latex_text = re.compile(r"(\\newline)|(\\break)|(\\n)").sub("<mspace linebreak='newline'/>", latex_text)
-    if label!="": latex_text = add_label_to_formula(latex_text, label)
-    return latex_text
+    mathml = latex2mathml.converter.convert(latex_text)
+    mathml = re.compile(r"(\\newline)|(\\break)|(\\n)").sub("<mspace linebreak='newline'/>", mathml)
+    if label!="": mathml = add_label_to_formula(mathml, label)
+    return mathml
 
 class LatexExtender:
     def __init__(self, flags) -> None:

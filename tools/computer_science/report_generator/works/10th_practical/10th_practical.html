@@ -1,0 +1,23 @@
+<report title_page="../../res/title_page.docx" author="$tp_author" group_name="$tp_group_name" work_number="10" title="Преобразователи кодов." recipient_status="$tp_recipient_status" recipient="$tp_recipient">
+    <var name="table_image_width">16</var>
+    <var name="screenshot_width">16</var>
+
+    <chapter title="Постановка задачи">
+        <p>Изучить на практике работу триггеров.</p>
+    </chapter>
+    <chapter title="...">
+        <table caption="Таблица 1" parse="simple" width="5">
+            <f>!S</f>	<f>!R</f>	<f>Q(t+1)</f>	<f>!(Q(t+1))</f>	<t>Режим</t>
+            0	0	1	1   <t>Запрещенная комбинация</t>
+            0	1	1	0   <t>Установка 1</t>
+            1	0	0	1   <t>Установка 0</t>
+            1	1	<f>Q(t)</f>	<f>!(Q(t))</f>   <t>Хранение</t>
+        </table>
+    </chapter>
+    <pbr/>
+    <chapter title="Заключение">
+        <p>В ходе практической работы была восстановлена таблица истинности логических функций от четырех переменных в 16-теричной векторной форме. По таблице истинности в лабораторном комплексе реализован преобразователь кодов на основе дешифратора, шифратора и дополнительной логики «или».</p>
+    </chapter>
+    <pbr/>
+    $chapter_list_of_information_sources
+</report>
